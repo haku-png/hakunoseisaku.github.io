@@ -1,4 +1,120 @@
 /* --------------------
+   オーディオマネージャー
+-------------------- */
+
+const AudioManager = {
+  bgm: {
+    main: null,
+    game: null
+  },
+  se: {
+    correct: null,
+    wrong: null,
+    button: null  // 画面遷移ボタン用
+  },
+  currentBGM: null,
+  currentBGMType: null,  // 現在再生中のBGMタイプ（'main' or 'game'）
+  bgmUnlocked: false,    // BGMが一度でも再生成功したか
+  isInitialized: false,
+  userInteracted: false,
+
+  // 音源の初期化
+  init() {
+    if (this.isInitialized) return;
+    
+    // BGM
+    this.bgm.main = new Audio('audio/main.bgm.mp3');
+    this.bgm.main.loop = true;
+    this.bgm.main.volume = 0.3;
+    
+    this.bgm.game = new Audio('audio/game.bgm.mp3');
+    this.bgm.game.loop = true;
+    this.bgm.game.volume = 0.3;
+    
+    // SE
+    this.se.correct = new Audio('audio/correct.mp3');
+    this.se.correct.volume = 0.5;
+    
+    this.se.wrong = new Audio('audio/wrong.mp3');
+    this.se.wrong.volume = 0.5;
+    
+    this.se.button = new Audio('audio/button.mp3');
+    this.se.button.volume = 0.4;
+    
+    this.isInitialized = true;
+  },
+
+  // ユーザー操作後に初期化（スマホ対応）
+  initOnUserInteraction() {
+    if (this.userInteracted) return;
+    this.userInteracted = true;
+    this.init();
+  },
+
+  // BGM切り替え
+  playBGM(type) {
+    if (!this.isInitialized) {
+      return;
+    }
+    
+    const newBGM = this.bgm[type];
+    if (!newBGM) {
+      console.warn(`BGM type "${type}" not found`);
+      return;
+    }
+    
+    // 同じBGMタイプがすでに再生中なら何もしない
+    if (this.currentBGMType === type && this.currentBGM && !this.currentBGM.paused) {
+      return;
+    }
+    
+    // 全てのBGMを停止
+    Object.values(this.bgm).forEach(bgm => {
+      if (bgm && !bgm.paused) {
+        bgm.pause();
+        bgm.currentTime = 0;
+      }
+    });
+    
+    // 新しいBGMを再生
+    this.currentBGM = newBGM;
+    this.currentBGMType = type;
+    this.currentBGM.currentTime = 0;
+    this.currentBGM.play().catch(err => {
+      console.log('BGM autoplay prevented:', err.message);
+    });
+  },
+
+  // SE再生
+  playSE(type) {
+    this.initOnUserInteraction();
+    if (!this.isInitialized) return;
+    
+    const se = this.se[type];
+    if (!se) {
+      console.warn(`SE type "${type}" not found`);
+      return;
+    }
+    
+    // SEは毎回最初から再生
+    se.currentTime = 0;
+    se.play().catch(err => {
+      // 再生失敗時は無視
+    });
+  },
+
+  // BGM停止
+  stopBGM() {
+    if (this.currentBGM) {
+      this.currentBGM.pause();
+      this.currentBGM.currentTime = 0;
+      this.currentBGM = null;
+      this.currentBGMType = null;
+    }
+  }
+};
+
+/* --------------------
    登山条件データ
 -------------------- */
 
@@ -378,11 +494,38 @@ function initMenuMainImage() {
     // 初回ランダム表示
     updateMenuMainImage();
     
-    // クリックで画像変更（イベント伝播を停止）
-    img.addEventListener("click", (e) => {
+    // クリックで画像変更 + BGM再生（イベント伝播を停止）
+    const handleImageInteraction = (e) => {
       e.stopPropagation();
       updateMenuMainImage();
-    });
+      
+      // BGMがまだアンロックされていない場合のみ再生
+      if (!AudioManager.bgmUnlocked) {
+        // オーディオ初期化（まだの場合）
+        if (!AudioManager.isInitialized) {
+          AudioManager.userInteracted = true;
+          AudioManager.init();
+          console.log('AudioManager initialized on image click');
+        }
+        
+        // クリックイベントハンドラ内でmain.bgmを直接再生
+        const mainBgm = AudioManager.bgm.main;
+        if (mainBgm) {
+          mainBgm.currentTime = 0;
+          mainBgm.play().then(() => {
+            AudioManager.currentBGM = mainBgm;
+            AudioManager.currentBGMType = 'main';
+            AudioManager.bgmUnlocked = true;
+            console.log('main.bgm started on image click, BGM unlocked');
+          }).catch(err => {
+            console.log('BGM play failed:', err.message);
+          });
+        }
+      }
+    };
+    
+    img.addEventListener("click", handleImageInteraction);
+    img.addEventListener("touchstart", handleImageInteraction);
   }
 }
 
@@ -489,6 +632,9 @@ function renderCondition() {
 
 function changeScene(name) {
   console.log("changeScene呼ばれた:", name);
+  
+  // 画面遷移時に効果音を再生
+  AudioManager.playSE('button');
 
   const target = document.getElementById(`scene-${name}`);
   if (!target) {
@@ -501,6 +647,20 @@ function changeScene(name) {
   });
 
   target.classList.remove("hidden");
+  
+  // BGM切り替え（画面に応じて適切なBGMを再生）
+  console.log('Switching BGM for scene:', name);
+  if (name === "menu") {
+    AudioManager.playBGM('main');
+  } else if (name === "packing" || name === "quiz" || name === "shopping") {
+    AudioManager.playBGM('game');
+  } else if (name === "custom-condition") {
+    // カスタム条件画面ではgame BGMを継続
+    AudioManager.playBGM('game');
+  } else if (name === "packing-result") {
+    // リザルト画面でもgame BGMを継続
+    AudioManager.playBGM('game');
+  }
   
   // 登山条件コンテナの表示制御
   const conditionContainer = document.getElementById("condition-container");
@@ -727,7 +887,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 初期化処理を実行
   init();
   
-  // メインメニュー画像の初期化
+  // メインメニュー画像の初期化（画像クリックでBGM再生）
   initMenuMainImage();
 
   // ===== ボタン =====
@@ -1399,8 +1559,10 @@ function judgeAnswer(selected) {
   if (selected === quiz.correct) {
     result.textContent = "○";
     correctCount++;
+    AudioManager.playSE('correct'); // 正解音
   } else {
     result.textContent = "×";
+    AudioManager.playSE('wrong'); // 不正解音
   }
 
   result.classList.remove("hidden");
@@ -4873,6 +5035,7 @@ function handleTouchStart(e) {
   // 長押しタイマー（500ms）
   touchDragData.longPressTimer = setTimeout(() => {
     touchDragData.isLongPress = true;
+    e.preventDefault(); // ブラウザのデフォルト動作を防止
     startDragFromTouch(target, "new");
   }, 500);
 }
@@ -4891,6 +5054,7 @@ function handleTouchStartOnGrid(e) {
   // 長押しタイマー（500ms）でドラッグ開始、短いタップで回転
   touchDragData.longPressTimer = setTimeout(() => {
     touchDragData.isLongPress = true;
+    e.preventDefault(); // ブラウザのデフォルト動作を防止
     const instanceId = target.dataset.instanceId;
     if (instanceId) {
       // 装備名を表示
@@ -4910,6 +5074,10 @@ function handleTouchStartOnGrid(e) {
 function startDragFromTouch(element, dragType, instanceId = null) {
   touchDragData.isDragging = true;
   element.style.opacity = "0.5";
+  
+  // ドラッグ中はブラウザのタッチ操作（スクロール、スワイプ等）を無効化
+  document.body.style.touchAction = "none";
+  document.body.style.overscrollBehavior = "none";
   
   if (dragType === "new") {
     const itemId = element.dataset.itemId;
@@ -5011,6 +5179,10 @@ function handleTouchEnd(e) {
   touchDragData.draggedElement = null;
   touchDragData.touchMoved = false;
   touchDragData.isLongPress = false;
+  
+  // ドラッグ終了後はブラウザのタッチ操作を復元
+  document.body.style.touchAction = "";
+  document.body.style.overscrollBehavior = "";
 }
 
 // ハイライト処理（タッチ用）

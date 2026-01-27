@@ -50,8 +50,13 @@ html, body {
 }
 
 /* スマホ対応：タッチ操作の最適化 */
-button, .packing-item {
+button {
   touch-action: manipulation;
+}
+
+/* ドラッグ可能な要素はタッチ操作を無効化してドラッグを優先 */
+.packing-item, #pack-grid, .pack-cell, .placed-item {
+  touch-action: none;
 }
 
 /* 左上：登山条件コンテナ（枠付き） */
