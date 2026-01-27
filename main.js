@@ -129,13 +129,20 @@ function setupScaling() {
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
   
+  // 安全マージンを確保（最低解像度667×375pxでも確実に収まるように）
+  const safeMargin = 0.98; // 2%のマージン
+  
   // 等比縮小の倍率を計算（小さい方に合わせる）
-  const scaleX = windowWidth / gameWidth;
-  const scaleY = windowHeight / gameHeight;
+  const scaleX = (windowWidth / gameWidth) * safeMargin;
+  const scaleY = (windowHeight / gameHeight) * safeMargin;
   const scale = Math.min(scaleX, scaleY);
   
+  // 最小スケールを設定（667×375pxでの計算値）
+  const minScale = Math.min(667 / gameWidth, 375 / gameHeight) * safeMargin;
+  const finalScale = Math.max(scale, minScale);
+  
   // スケール適用
-  uiFrame.style.transform = `scale(${scale})`;
+  uiFrame.style.transform = `scale(${finalScale})`;
 }
 
 /* --------------------

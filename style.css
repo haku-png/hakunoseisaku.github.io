@@ -17,6 +17,9 @@ html, body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  /* 最低対応解像度: 667px × 375px */
+  min-width: 667px;
+  min-height: 375px;
 }
 
 #screen-root {
@@ -28,6 +31,9 @@ html, body {
   align-items: center;
   user-select: none;
   overflow: hidden;
+  /* 最低対応解像度: 667px × 375px */
+  min-width: 667px;
+  min-height: 375px;
 }
 
 /* UI固定フレーム - 1280x720固定（等比縮小で全デバイス対応） */
@@ -39,6 +45,8 @@ html, body {
   overflow: hidden;
   z-index: 0;
   transform-origin: center center;
+  /* 縮小時も中央配置を維持 */
+  flex-shrink: 0;
 }
 
 /* スマホ対応：タッチ操作の最適化 */
@@ -246,7 +254,7 @@ button, .packing-item {
 }
 
 #scene-quiz #footer-area {
-  position: fixed;
+  position: absolute;
   bottom: 20px;           /* 解説の下（画面下部）に配置 */
   left: 50%;
   transform: translateX(-50%);
@@ -420,7 +428,7 @@ button, .packing-item {
 
 /* 解説の背景（画面全体を覆う） */
 #quiz-explanation {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -448,7 +456,7 @@ button, .packing-item {
 
 /* 正誤表示（○/×）- 解説文と背景の間に表示 */
 #quiz-result {
-  position: fixed;
+  position: absolute;
   /* 解説エリアの直上に配置 */
   top: 72px;
   left: 50%;
@@ -481,9 +489,9 @@ button, .packing-item {
   transition: background-color 0.3s;
 }
 
-/* 買い物ゲーム画面ではスクロール時も固定表示 */
+/* 買い物ゲーム画面でもabsoluteを維持 */
 #shopping-ui #btn-exit-shopping {
-  position: fixed;
+  position: absolute;
 }
 
 #btn-ready {
@@ -1257,7 +1265,7 @@ button, .packing-item {
 
 #btn-go-shopping {
   position: absolute;
-  top: 70px;
+  top: 100px;
   right: 25px;
   padding: 8px 16px;
   font-size: 14px !important;
