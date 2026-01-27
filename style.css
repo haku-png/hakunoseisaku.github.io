@@ -62,7 +62,7 @@ button, .packing-item {
 }
 
 #condition-area {
-  font-size: 3vmin;
+  font-size: 16px;
   line-height: 1.4;
   margin-bottom: 10px;
   pointer-events: none;
@@ -123,7 +123,7 @@ button, .packing-item {
 }
 
 #scene-custom-condition h2 {
-  font-size: 6vmin;
+  font-size: 36px;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -136,7 +136,7 @@ button, .packing-item {
 }
 
 .custom-section h3 {
-  font-size: 4vmin;
+  font-size: 24px;
   margin-bottom: 10px;
   color: #333;
 }
@@ -149,7 +149,7 @@ button, .packing-item {
 
 .custom-option {
   padding: 8px 16px;
-  font-size: 3.5vmin;
+  font-size: 18px;
   background: white;
   border: 2px solid #ccc;
   border-radius: 4px;
@@ -173,7 +173,7 @@ button, .packing-item {
 #btn-cancel-custom {
   width: 100%;
   padding: 12px 24px;
-  font-size: 4vmin;
+  font-size: 20px;
   margin-top: 10px;
   border: none;
   border-radius: 4px;
@@ -226,7 +226,7 @@ button, .packing-item {
 #scene-quiz,
 #scene-quiz * {
   font-family: sans-serif !important;
-  font-size: 4vmin !important;
+  font-size: 24px !important;
 }
 
 #scene-quiz {
@@ -237,7 +237,7 @@ button, .packing-item {
 
 /* 正誤表示（○/×）は独自のサイズを保持 */
 #quiz-result {
-  font-size: min(25vmin, 20vh) !important;
+  font-size: 180px !important;
 }
 
 /* メニューに戻るボタンは元のサイズを保持 */
@@ -428,8 +428,8 @@ button, .packing-item {
   /* 背景を透明度50%の黒に（画面全体を覆う） */
   background: rgba(0, 0, 0, 0.5);
   padding: 20px;
-  /* 基本フォントサイズ30px、画面サイズに応じて可変 */
-  font-size: 4vmin;
+  /* 基本フォントサイズ固定 */
+  font-size: 24px;
   color: #fff;
   white-space: pre-line;
   text-align: center;
@@ -439,8 +439,8 @@ button, .packing-item {
   /* 解説文を上寄せにし、○/×のすぐ下から始まるように上部に余白をとる */
   justify-content: flex-start;
   align-items: center;
-  /* 上部余白 = ○/×の位置(約10%) + ○/×の高さ相当(25vmin) */
-  padding-top: calc(10% + 25vmin);
+  /* 上部余白 = ○/×の位置 + ○/×の高さ相当 */
+  padding-top: 260px;
   padding-bottom: 20px;
   box-sizing: border-box;
   user-select: none;
@@ -449,14 +449,14 @@ button, .packing-item {
 /* 正誤表示（○/×）- 解説文と背景の間に表示 */
 #quiz-result {
   position: fixed;
-  /* 解説エリアの直上に配置（上から約10%の位置） */
-  top: 10%;
+  /* 解説エリアの直上に配置 */
+  top: 72px;
   left: 50%;
   transform: translateX(-50%);
   /* 透明度50%の赤 */
   color: rgba(255, 0, 0, 0.5);
-  /* 画面内に収まる最大サイズ（短辺基準＆高さに余白を残す） */
-  font-size: min(25vmin, 20vh);
+  /* 固定サイズ */
+  font-size: 180px;
   font-weight: bold;
   z-index: 101;
   pointer-events: none;
@@ -523,7 +523,7 @@ button, .packing-item {
 }
 
 #scene-packing * {
-  font-size: 3vmin;
+  font-size: 16px;
 }
 
 #scene-packing .packing-item-label {
@@ -610,7 +610,7 @@ button, .packing-item {
 #packing-info {
   text-align: center;
   padding: 10px 0;
-  font-size: 3vmin;
+  font-size: 16px;
   font-weight: bold;
 }
 
@@ -704,7 +704,7 @@ button, .packing-item {
    共通サイズ定義
    ========================= */
 :root {
-  --item-unit: clamp(48px, 8vw, 80px);
+  --item-unit: 64px;
   --item-gap: calc(var(--item-unit) * 0.15);
   --item-font: calc(var(--item-unit) * 0.18);
   --item-border: calc(var(--item-unit) * 0.03);
@@ -808,7 +808,7 @@ button, .packing-item {
 }
 
 #equipment-checklist h3 {
-  font-size: 3vmin;
+  font-size: 16px;
   margin: 0 0 8px 0;
   color: #333;
 }
@@ -820,7 +820,7 @@ button, .packing-item {
 }
 
 #equipment-checklist li {
-  font-size: 2.8vmin;
+  font-size: 15px;
   padding: 3px 0;
 }
 
@@ -851,7 +851,7 @@ button, .packing-item {
 }
 
 #scene-packing-result h2 {
-  font-size: 4.5vmin;
+  font-size: 28px;
   margin-bottom: 5px;
 }
 
@@ -890,18 +890,18 @@ button, .packing-item {
 }
 
 .rank-label {
-  font-size: 4vmin;
+  font-size: 24px;
   margin-bottom: 5px;
 }
 
 .rank-value {
-  font-size: 15vmin;
+  font-size: 90px;
   font-weight: bold;
   letter-spacing: 2px;
 }
 
 .space-comment {
-  font-size: 2.5vmin;
+  font-size: 14px;
   color: #333;
   text-align: center;
   line-height: 1.3;
@@ -912,7 +912,7 @@ button, .packing-item {
 }
 
 .balance-comment {
-  font-size: 2.5vmin;
+  font-size: 14px;
   color: #f44336;
   text-align: center;
   line-height: 1.3;
@@ -942,7 +942,7 @@ button, .packing-item {
 }
 
 .missing-items-section h4 {
-  font-size: 3vmin;
+  font-size: 16px;
   margin-bottom: 5px;
   color: #333;
 }
@@ -950,7 +950,7 @@ button, .packing-item {
 .missing-items-section ul {
   text-align: left;
   list-style-position: inside;
-  font-size: 2.5vmin;
+  font-size: 14px;
   margin: 0;
   padding: 0;
   color: #666;
@@ -980,7 +980,7 @@ button, .packing-item {
 }
 
 .missing-items-section p {
-  font-size: 3.5vmin;
+  font-size: 18px;
   color: #4CAF50;
   margin: 0;
 }
@@ -1008,7 +1008,7 @@ button, .packing-item {
 /* ボタン */
 .result-buttons button {
   padding: 10px 20px;
-  font-size: 3vmin;
+  font-size: 16px;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -1044,7 +1044,7 @@ button, .packing-item {
 }
 
 #result-equipment-checklist h3 {
-  font-size: 3vmin;
+  font-size: 16px;
   margin: 0 0 8px 0;
   color: #333;
 }
@@ -1057,7 +1057,7 @@ button, .packing-item {
 }
 
 #result-equipment-checklist li {
-  font-size: 2.8vmin;
+  font-size: 15px;
   padding: 4px 0;
 }
 
@@ -1082,7 +1082,7 @@ button, .packing-item {
 }
 
 .weight-info-content h3 {
-  font-size: 3.5vmin;
+  font-size: 18px;
   margin: 0 0 10px 0;
   color: #333;
   text-align: center;
@@ -1092,7 +1092,7 @@ button, .packing-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 3.2vmin;
+  font-size: 17px;
   font-weight: bold;
   padding: 8px 0;
   border-bottom: 2px solid #333;
@@ -1111,7 +1111,7 @@ button, .packing-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 2.8vmin;
+  font-size: 15px;
   padding: 4px 0;
   color: #555;
 }
@@ -1127,7 +1127,7 @@ button, .packing-item {
 
 .balance-status {
   text-align: center;
-  font-size: 2.8vmin;
+  font-size: 15px;
   font-weight: bold;
   margin: 8px 0 0 0;
   padding: 6px;
@@ -1149,7 +1149,7 @@ button, .packing-item {
 #scene-packing-result button {
   margin: 3px 8px;
   padding: 10px 20px;
-  font-size: 3vmin;
+  font-size: 16px;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -1173,7 +1173,7 @@ button, .packing-item {
    買い物ゲーム
    ========================= */
 #shopping-ui {
-  padding: 2vmin;
+  padding: 12px;
   width: 100%;
   height: 100%;
   background: #ffffff;
@@ -1181,29 +1181,29 @@ button, .packing-item {
 }
 
 #shopping-ui h2 {
-  font-size: 6vmin;
-  margin-bottom: 2vmin;
+  font-size: 36px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
 #shopping-selectors {
   display: flex;
   flex-direction: column;
-  gap: 2vmin;
-  margin-bottom: 2vmin;
+  gap: 12px;
+  margin-bottom: 12px;
   align-items: center;
-  margin-top: 12vmin;
+  margin-top: 72px;
 }
 
 .selector-group {
   display: flex;
   flex-direction: column;
-  gap: 1vmin;
+  gap: 8px;
   align-items: center;
 }
 
 .selector-group h3 {
-  font-size: 5vmin;
+  font-size: 30px;
   margin: 0;
   text-align: center;
 }
@@ -1211,16 +1211,16 @@ button, .packing-item {
 .selector-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1vmin;
+  gap: 8px;
   justify-content: center;
   width: 100%;
-  max-width: 80vmin;
+  max-width: 480px;
 }
 
 .season-btn,
 .mountain-btn {
-  padding: 1vmin 2vmin;
-  font-size: 3.5vmin;
+  padding: 8px 12px;
+  font-size: 18px;
   background: white;
   border: 4px solid #000;
   border-radius: 4px;
@@ -1280,15 +1280,15 @@ button, .packing-item {
 
 #shopping-legend {
   display: none;
-  gap: 2vmin;
-  margin-top: 10vmin;
-  margin-bottom: 2vmin;
+  gap: 12px;
+  margin-top: 60px;
+  margin-bottom: 12px;
   justify-content: center;
 }
 
 .legend-item {
-  padding: 1vmin 2vmin;
-  font-size: 3vmin;
+  padding: 8px 12px;
+  font-size: 16px;
   font-weight: bold;
   color: #fff;
   text-align: center;
@@ -1307,14 +1307,14 @@ button, .packing-item {
 #shopping-items {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5vmin;
-  margin-top: 12vmin;
+  gap: 9px;
+  margin-top: 72px;
 }
 
 .shopping-item {
   position: relative;
-  padding: 1vmin 2vmin;
-  font-size: 3.5vmin;
+  padding: 8px 12px;
+  font-size: 18px;
   background: white;
   border: 4px solid #000;
   border-radius: 0;
@@ -1322,7 +1322,7 @@ button, .packing-item {
   transition: all 0.3s;
   user-select: none;
   text-align: center;
-  min-height: 5vmin;
+  min-height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1335,7 +1335,7 @@ button, .packing-item {
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 3vmin;
+  font-size: 16px;
   color: #fff;
   font-weight: bold;
 }
@@ -1351,7 +1351,7 @@ button, .packing-item {
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 3vmin;
+  font-size: 16px;
   color: #fff;
   font-weight: bold;
 }
