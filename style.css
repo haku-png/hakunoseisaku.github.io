@@ -249,6 +249,9 @@ button {
   width: 100%;
   height: 100%;
   background: #ffffff;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* 正誤表示（○/×）は独自のサイズを保持 */
@@ -457,9 +460,12 @@ button {
   align-items: center;
   /* 上部余白 = ○/×の位置 + ○/×の高さ相当 */
   padding-top: 260px;
-  padding-bottom: 20px;
+  /* 下部余白を増やして「次へ」ボタンのためのスペースを確保（60px=ボタン高さ+margin） */
+  padding-bottom: 80px;
   box-sizing: border-box;
   user-select: none;
+  /* 解説文が長い場合にスクロール可能にする */
+  overflow-y: auto;
 }
 
 /* 正誤表示（○/×）- 解説文と背景の間に表示 */

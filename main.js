@@ -3205,7 +3205,12 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
     // ドロップ先の座標を取得
     const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
     if (dropTarget) {
+      // グリッド内にドロップ: 再配置
       handlePlacedItemDrop(instanceId, dropTarget.x, dropTarget.y);
+    } else {
+      // グリッド外にドロップ: 削除
+      console.log("グリッド外にドロップして削除:", instanceId);
+      removeItemFromGrid(instanceId);
     }
     
     currentDraggedItem = null;
