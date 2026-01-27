@@ -109,6 +109,33 @@ function init() {
   if (conditionContainer) {
     conditionContainer.classList.add("hidden");
   }
+
+  // 画面スケーリング設定
+  setupScaling();
+  window.addEventListener("resize", setupScaling);
+}
+
+/* --------------------
+   画面スケーリング（1280×720を画面サイズに等比縮小）
+-------------------- */
+
+function setupScaling() {
+  const uiFrame = document.getElementById("ui-frame");
+  if (!uiFrame) return;
+
+  const gameWidth = 1280;
+  const gameHeight = 720;
+  
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  
+  // 等比縮小の倍率を計算（小さい方に合わせる）
+  const scaleX = windowWidth / gameWidth;
+  const scaleY = windowHeight / gameHeight;
+  const scale = Math.min(scaleX, scaleY);
+  
+  // スケール適用
+  uiFrame.style.transform = `scale(${scale})`;
 }
 
 /* --------------------
@@ -4343,6 +4370,45 @@ function checkOrientation() {
 window.addEventListener("resize", checkOrientation);
 window.addEventListener("orientationchange", checkOrientation);
 checkOrientation();
+
+/* --------------------
+   スマートフォン対応：画面全体の動的スケール調整
+   設計解像度: 1280x720（横画面）
+   PC（1280x720以上）: scale(1) = そのまま表示
+   スマホ（それ以下）: transform: scale() で等比率縮小
+-------------------- */
+function adjustGameScale() {
+  const uiFrame = document.getElementById("ui-frame");
+  if (!uiFrame) return;
+  
+  // 設計解像度（PC版の完成サイズ）
+  const BASE_WIDTH = 1280;
+  const BASE_HEIGHT = 720;
+  
+  // 現在の画面サイズ
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  
+  // 縦向きの場合はスケール調整しない（警告表示のため）
+  const isPortrait = screenHeight > screenWidth;
+  if (isPortrait) {
+    uiFrame.style.transform = "scale(1)";
+    return;
+  }
+  
+  // スケール計算：画面サイズ / 設計解像度
+  const scaleX = screenWidth / BASE_WIDTH;
+  const scaleY = screenHeight / BASE_HEIGHT;
+  const scale = Math.min(scaleX, scaleY); // 縦横比を保って縮小
+  
+  // PC（1280x720以上）ではscale(1)、スマホでは縮小
+  uiFrame.style.transform = `scale(${scale})`;
+}
+
+// 初回実行とリサイズ時に実行
+window.addEventListener("resize", adjustGameScale);
+window.addEventListener("orientationchange", adjustGameScale);
+adjustGameScale();
 
 /* --------------------
    スマートフォン対応：タッチ操作サポート
