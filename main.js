@@ -648,6 +648,16 @@ function changeScene(name) {
 
   target.classList.remove("hidden");
   
+  // パッキング画面でのみ画面固定を適用（スマホでのドラッグ操作時の揺れ防止）
+  if (name === "packing") {
+    document.body.classList.add("packing-mode");
+  } else {
+    document.body.classList.remove("packing-mode");
+    // 他の画面ではスクロール制限を解除
+    document.body.style.touchAction = "";
+    document.body.style.overscrollBehavior = "";
+  }
+  
   // BGM切り替え（画面に応じて適切なBGMを再生）
   console.log('Switching BGM for scene:', name);
   if (name === "menu") {
@@ -5075,9 +5085,11 @@ function startDragFromTouch(element, dragType, instanceId = null) {
   touchDragData.isDragging = true;
   element.style.opacity = "0.5";
   
-  // ドラッグ中はブラウザのタッチ操作（スクロール、スワイプ等）を無効化
-  document.body.style.touchAction = "none";
-  document.body.style.overscrollBehavior = "none";
+  // パッキング画面でのみドラッグ中のブラウザのタッチ操作（スクロール、スワイプ等）を無効化
+  if (document.body.classList.contains("packing-mode")) {
+    document.body.style.touchAction = "none";
+    document.body.style.overscrollBehavior = "none";
+  }
   
   if (dragType === "new") {
     const itemId = element.dataset.itemId;
@@ -5180,9 +5192,12 @@ function handleTouchEnd(e) {
   touchDragData.touchMoved = false;
   touchDragData.isLongPress = false;
   
-  // ドラッグ終了後はブラウザのタッチ操作を復元
-  document.body.style.touchAction = "";
-  document.body.style.overscrollBehavior = "";
+  // パッキング画面でのみドラッグ終了後にタッチ操作を復元
+  // （他の画面では画面固定をしていないため、復元不要）
+  if (document.body.classList.contains("packing-mode")) {
+    document.body.style.touchAction = "";
+    document.body.style.overscrollBehavior = "";
+  }
 }
 
 // ハイライト処理（タッチ用）

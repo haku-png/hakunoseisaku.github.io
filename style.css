@@ -15,11 +15,15 @@
 html, body {
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
   /* 最低対応解像度: 667px × 375px */
   min-width: 667px;
   min-height: 375px;
+}
+
+/* パッキング画面でのみ画面固定を適用（スマホでのドラッグ操作時の揺れ防止） */
+body.packing-mode {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 #screen-root {
@@ -30,7 +34,6 @@ html, body {
   justify-content: center;
   align-items: center;
   user-select: none;
-  overflow: hidden;
   /* 最低対応解像度: 667px × 375px */
   min-width: 667px;
   min-height: 375px;
