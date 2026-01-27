@@ -95,6 +95,8 @@ let currentDragType = null; // "new" or "placed"
 let currentCondition = null; // 現在の登山条件
 let autoScrollInterval = null; // 自動スクロール用のインターバル
 let savedPackingState = null; // 準備完了前の状態を保存
+let dragPreviewElement = null; // ドラッグ中のプレビュー要素
+let isDraggingActive = false; // ドラッグ中フラグ（全イベント共通）
 
 /* --------------------
    初期化
@@ -143,6 +145,209 @@ function setupScaling() {
   
   // スケール適用
   uiFrame.style.transform = `scale(${finalScale})`;
+  
+  // 現在のスケール値をグローバル変数に保存（座標変換で使用）
+  window.currentScale = finalScale;
+}
+
+/* --------------------
+   Pointer Events用ヘルパー関数（スマホ対応）
+-------------------- */
+
+// ドラッグプレビュー要素を作成
+function createDragPreview(item, rotated = false) {
+  // 既存のプレビューがあれば削除
+  removeDragPreview();
+  
+  const preview = document.createElement("div");
+  preview.id = "drag-preview";
+  preview.style.position = "fixed";
+  preview.style.pointerEvents = "none";
+  preview.style.zIndex = "10000";
+  preview.style.opacity = "0.8";
+  preview.style.transform = "translate(-50%, -50%)";
+  preview.style.backgroundColor = "#ffffff";
+  preview.style.border = "2px solid #2E7D32";
+  preview.style.borderRadius = "4px";
+  preview.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.3)";
+  
+  // サイズを設定（セルサイズベース）
+  const cellSize = 40;
+  const gap = 2;
+  const width = rotated ? item.size.h : item.size.w;
+  const height = rotated ? item.size.w : item.size.h;
+  
+  const previewWidth = width * cellSize + (width - 1) * gap;
+  const previewHeight = height * cellSize + (height - 1) * gap;
+  
+  preview.style.width = `${previewWidth}px`;
+  preview.style.height = `${previewHeight}px`;
+  
+  // block画像を設定（配置後と同じ見た目）
+  const img = document.createElement("img");
+  img.src = item.blockImage; // blockImageを使用
+  img.alt = item.name;
+  img.style.display = "block";
+  img.style.width = "100%";
+  img.style.height = "100%";
+  img.style.objectFit = "contain";
+  img.style.position = "absolute";
+  img.style.top = "50%";
+  img.style.left = "50%";
+  
+  if (rotated) {
+    img.style.transform = "translate(-50%, -50%) rotate(90deg)";
+  } else {
+    img.style.transform = "translate(-50%, -50%)";
+  }
+  
+  preview.appendChild(img);
+  document.body.appendChild(preview);
+  dragPreviewElement = preview;
+  
+  console.log("ドラッグプレビュー作成:", item.name, "回転:", rotated, "サイズ:", `${width}×${height}`);
+  
+  return preview;
+}
+
+// ドラッグプレビュー要素の位置を更新
+function updateDragPreview(clientX, clientY) {
+  if (!dragPreviewElement) return;
+  
+  dragPreviewElement.style.left = `${clientX}px`;
+  dragPreviewElement.style.top = `${clientY}px`;
+}
+
+// ドラッグプレビュー要素を削除
+function removeDragPreview() {
+  if (dragPreviewElement) {
+    dragPreviewElement.remove();
+    dragPreviewElement = null;
+    console.log("ドラッグプレビュー削除");
+  }
+}
+
+// scale変換を考慮してポインター座標からグリッドセルを取得
+function getGridCellFromPointer(clientX, clientY) {
+  const gridEl = document.getElementById("pack-grid");
+  if (!gridEl) return null;
+  
+  const uiFrame = document.getElementById("ui-frame");
+  if (!uiFrame) return null;
+  
+  // ui-frameの境界とスケール値を取得
+  const frameRect = uiFrame.getBoundingClientRect();
+  const scale = window.currentScale || 1;
+  
+  // スケール変換を考慮した座標計算
+  // クライアント座標からui-frame内の座標に変換
+  const frameX = (clientX - frameRect.left) / scale;
+  const frameY = (clientY - frameRect.top) / scale;
+  
+  // グリッドの境界を取得
+  const gridRect = gridEl.getBoundingClientRect();
+  const gridLeft = (gridRect.left - frameRect.left) / scale;
+  const gridTop = (gridRect.top - frameRect.top) / scale;
+  
+  // グリッド内の相対座標
+  const relativeX = frameX - gridLeft;
+  const relativeY = frameY - gridTop;
+  
+  // セルサイズとギャップ
+  const cellSize = 40;
+  const gap = 2;
+  const padding = 4;
+  
+  // セル座標に変換
+  const x = Math.floor((relativeX - padding) / (cellSize + gap));
+  const y = Math.floor((relativeY - padding) / (cellSize + gap));
+  
+  // 範囲チェック
+  if (x < 0 || x >= packConfig.cols || y < 0 || y >= packConfig.rows) {
+    return null;
+  }
+  
+  return { x, y };
+}
+
+// 新しいアイテムのドロップ処理
+function handleItemDrop(cellX, cellY) {
+  if (!currentDraggedItem || currentDragType !== "new") return;
+  
+  const item = packingItems.find(i => i.id === currentDraggedItem);
+  if (!item) return;
+  
+  console.log(`アイテム「${item.name}」をグリッド(${cellX}, ${cellY})にドロップ`);
+  
+  // Y座標を調整（highlightPlacementAreaと同じロジック）
+  let adjustedY = cellY;
+  const height = item.size.h;
+  
+  if (cellY === packConfig.rows - 1) {
+    // 最下辺の列：アイテムの下端がcellYになるように調整
+    adjustedY = cellY - (height - 1);
+    if (adjustedY < 0) adjustedY = 0;
+  } else if (cellY === 0) {
+    // 最上辺の列：アイテムの上端がcellYになる（調整不要）
+    adjustedY = cellY;
+  } else {
+    // 中間の列：ドロップ位置がアイテムの範囲内になるように調整
+    const offset = Math.floor(height / 2);
+    adjustedY = cellY - offset;
+    if (adjustedY < 0) adjustedY = 0;
+    if (adjustedY + height > packConfig.rows) {
+      adjustedY = packConfig.rows - height;
+    }
+  }
+  
+  console.log(`配置位置調整: (${cellX}, ${cellY}) → (${cellX}, ${adjustedY})`);
+  
+  // アイテムを配置
+  placeItemOnGrid(item.id, cellX, adjustedY);
+}
+
+// 配置済みアイテムの移動処理
+function handlePlacedItemDrop(instanceId, cellX, cellY) {
+  if (!currentDraggedItem || currentDragType !== "placed") return;
+  
+  const placed = placedItems[instanceId];
+  if (!placed) return;
+  
+  const item = packingItems.find(i => i.id === placed.itemId);
+  if (!item) return;
+  
+  console.log(`配置済みアイテム「${item.name}」をグリッド(${cellX}, ${cellY})に移動`);
+  
+  // Y座標を調整（highlightPlacementAreaと同じロジック）
+  let adjustedY = cellY;
+  let height = placed.rotated ? item.size.w : item.size.h;
+  
+  // 圧縮状態を考慮
+  if (placed.pressed && item.pressable) {
+    height = Math.max(1, height - 1);
+  }
+  
+  if (cellY === packConfig.rows - 1) {
+    // 最下辺の列：アイテムの下端がcellYになるように調整
+    adjustedY = cellY - (height - 1);
+    if (adjustedY < 0) adjustedY = 0;
+  } else if (cellY === 0) {
+    // 最上辺の列：アイテムの上端がcellYになる（調整不要）
+    adjustedY = cellY;
+  } else {
+    // 中間の列：ドロップ位置がアイテムの範囲内になるように調整
+    const offset = Math.floor(height / 2);
+    adjustedY = cellY - offset;
+    if (adjustedY < 0) adjustedY = 0;
+    if (adjustedY + height > packConfig.rows) {
+      adjustedY = packConfig.rows - height;
+    }
+  }
+  
+  console.log(`移動位置調整: (${cellX}, ${cellY}) → (${cellX}, ${adjustedY})`);
+  
+  // アイテムを移動
+  moveItemOnGrid(instanceId, cellX, adjustedY);
 }
 
 /* --------------------
@@ -2761,14 +2966,101 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
     hideItemName(instanceId);
   });
   
-  // 配置済み装備のドラッグイベント
+  // Pointer Eventsで配置済み装備のドラッグを実装（スマホ対応）
+  let isDraggingPlaced = false;
+  let pointerDownTime = 0;
+  
+  itemEl.addEventListener("pointerdown", (e) => {
+    pointerDownTime = Date.now();
+    isDraggingPlaced = true;
+    isDraggingActive = true;
+    currentDraggedItem = instanceId;
+    currentDragType = "placed";
+    itemEl.style.opacity = "0.5";
+    itemEl.setPointerCapture(e.pointerId);
+    
+    if (nameDisplayTimer) {
+      clearTimeout(nameDisplayTimer);
+      nameDisplayTimer = null;
+    }
+    hideItemName(instanceId);
+    
+    // プレビュー要素を作成
+    createDragPreview(item, placed.rotated);
+    updateDragPreview(e.clientX, e.clientY);
+    
+    console.log("配置済み装備のドラッグ開始:", instanceId);
+    e.stopPropagation();
+  });
+  
+  itemEl.addEventListener("pointermove", (e) => {
+    if (!isDraggingPlaced) return;
+    
+    // プレビュー要素を更新
+    updateDragPreview(e.clientX, e.clientY);
+    
+    // グリッドセルのハイライト更新
+    const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
+    if (dropTarget) {
+      highlightPlacementArea(dropTarget.x, dropTarget.y);
+    } else {
+      clearAllHighlights();
+    }
+  });
+  
+  itemEl.addEventListener("pointerup", (e) => {
+    if (!isDraggingPlaced) return;
+    
+    const dragDuration = Date.now() - pointerDownTime;
+    isDraggingPlaced = false;
+    isDraggingActive = false;
+    itemEl.style.opacity = "1";
+    
+    // プレビュー要素を削除
+    removeDragPreview();
+    
+    // 短時間のタップはクリック（回転）として扱う
+    if (dragDuration < 200) {
+      currentDraggedItem = null;
+      currentDragType = null;
+      clearAllHighlights();
+      itemEl.releasePointerCapture(e.pointerId);
+      rotateItem(instanceId);
+      e.stopPropagation();
+      return;
+    }
+    
+    // ドロップ先の座標を取得
+    const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
+    if (dropTarget) {
+      handlePlacedItemDrop(instanceId, dropTarget.x, dropTarget.y);
+    }
+    
+    currentDraggedItem = null;
+    currentDragType = null;
+    clearAllHighlights();
+    itemEl.releasePointerCapture(e.pointerId);
+    e.stopPropagation();
+  });
+  
+  itemEl.addEventListener("pointercancel", (e) => {
+    isDraggingPlaced = false;
+    isDraggingActive = false;
+    itemEl.style.opacity = "1";
+    removeDragPreview();
+    currentDraggedItem = null;
+    currentDragType = null;
+    clearAllHighlights();
+  });
+  
+  // 旧式のdragイベントも残す（互換性のため）
   itemEl.addEventListener("dragstart", (e) => {
     e.stopPropagation();
     e.dataTransfer.setData("placedInstanceId", instanceId);
     currentDraggedItem = instanceId;
     currentDragType = "placed";
+    isDraggingActive = true;
     itemEl.style.opacity = "0.5";
-    // ドラッグ開始時は名前表示を削除
     if (nameDisplayTimer) {
       clearTimeout(nameDisplayTimer);
       nameDisplayTimer = null;
@@ -2781,13 +3073,8 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
     itemEl.style.opacity = "1";
     currentDraggedItem = null;
     currentDragType = null;
+    isDraggingActive = false;
     clearAllHighlights();
-  });
-  
-  // クリックで90度右回りに回転
-  itemEl.addEventListener("click", (e) => {
-    e.stopPropagation();
-    rotateItem(instanceId);
   });
   
   gridEl.appendChild(itemEl);
@@ -3006,7 +3293,10 @@ function highlightPlacementArea(cellX, cellY) {
   // 一旦すべてのハイライトをクリア
   clearAllHighlights();
   
-  if (!currentDraggedItem) return;
+  if (!currentDraggedItem) {
+    console.log("ハイライト: currentDraggedItemがnull");
+    return;
+  }
   
   let item = null;
   let width = 0;
@@ -3071,6 +3361,7 @@ function highlightPlacementArea(cellX, cellY) {
   const gridEl = document.getElementById("pack-grid");
   if (!gridEl) return;
   
+  let highlightedCount = 0;
   for (let dy = 0; dy < height; dy++) {
     for (let dx = 0; dx < width; dx++) {
       const targetX = cellX + dx;
@@ -3082,9 +3373,14 @@ function highlightPlacementArea(cellX, cellY) {
         const targetCell = gridEl.querySelector(`[data-x="${targetX}"][data-y="${targetY}"]`);
         if (targetCell) {
           targetCell.classList.add("drag-over");
+          highlightedCount++;
         }
       }
     }
+  }
+  
+  if (highlightedCount > 0) {
+    console.log(`ハイライト表示: ${highlightedCount}セル at (${cellX}, ${adjustedY})`);
   }
 }
 
@@ -3161,7 +3457,22 @@ function renderEmptyGrid() {
       cell.dataset.x = x;
       cell.dataset.y = y;
       
-      // ドラッグオーバーイベント（ドロップを許可）
+      // Pointer Events（スマホ対応）
+      cell.addEventListener("pointerover", (e) => {
+        if (!currentDraggedItem) return;
+        
+        const cellX = parseInt(cell.dataset.x);
+        const cellY = parseInt(cell.dataset.y);
+        highlightPlacementArea(cellX, cellY);
+      });
+      
+      cell.addEventListener("pointerout", (e) => {
+        // ポインターが離れたらハイライト解除
+        if (e.pointerType === "touch") return; // タッチの場合は解除しない
+        clearAllHighlights();
+      });
+      
+      // ドラッグオーバーイベント（ドロップを許可）- 旧式も維持
       cell.addEventListener("dragover", (e) => {
         e.preventDefault();
         
@@ -3312,6 +3623,19 @@ function renderEmptyGrid() {
     }
   });
   
+  // グリッド全体でのpointermoveイベント（スマホ対応のハイライト更新）
+  gridEl.addEventListener("pointermove", (e) => {
+    if (!isDraggingActive || !currentDraggedItem) return;
+    
+    // ポインター座標からグリッドセルを取得
+    const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
+    if (dropTarget) {
+      highlightPlacementArea(dropTarget.x, dropTarget.y);
+    } else {
+      clearAllHighlights();
+    }
+  });
+  
   // グリッド外へのドロップで装備を削除
   gridEl.addEventListener("dragover", (e) => {
     // グリッド自体へのドロップを許可
@@ -3342,6 +3666,22 @@ function renderEmptyGrid() {
   
   // グリッド外へのドロップで削除（グリッドの親要素）- 既存のpackAreaを再利用
   if (packArea) {
+    // pack-area全体でのpointermove（プレビュー更新とハイライト）
+    packArea.addEventListener("pointermove", (e) => {
+      if (!isDraggingActive || !currentDraggedItem) return;
+      
+      // プレビュー要素の位置を更新
+      updateDragPreview(e.clientX, e.clientY);
+      
+      // グリッドセルのハイライト更新
+      const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
+      if (dropTarget) {
+        highlightPlacementArea(dropTarget.x, dropTarget.y);
+      } else {
+        clearAllHighlights();
+      }
+    });
+    
     packArea.addEventListener("dragover", (e) => {
       e.preventDefault();
       
@@ -4079,19 +4419,86 @@ function renderPackingItems() {
     itemEl.appendChild(img);
     itemEl.appendChild(label);
     
-    // ドラッグ開始イベント
+    // Pointer Eventsでドラッグ操作を実装（スマホ対応）
+    let isDragging = false;
+    
+    itemEl.addEventListener("pointerdown", (e) => {
+      isDragging = true;
+      isDraggingActive = true;
+      currentDraggedItem = item.id;
+      currentDragType = "new";
+      itemEl.classList.add("dragging");
+      itemEl.setPointerCapture(e.pointerId);
+      
+      // プレビュー要素を作成
+      createDragPreview(item, false);
+      updateDragPreview(e.clientX, e.clientY);
+      
+      console.log("装備一覧: ドラッグ開始", item.name);
+      e.preventDefault();
+    });
+    
+    itemEl.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+      
+      // プレビュー要素を更新
+      updateDragPreview(e.clientX, e.clientY);
+      
+      // グリッドセルのハイライト更新
+      const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
+      if (dropTarget) {
+        highlightPlacementArea(dropTarget.x, dropTarget.y);
+      } else {
+        clearAllHighlights();
+      }
+    });
+    
+    itemEl.addEventListener("pointerup", (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      isDraggingActive = false;
+      
+      // プレビュー要素を削除
+      removeDragPreview();
+      
+      // ドロップ先の座標を取得（scale変換を考慮）
+      const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
+      if (dropTarget) {
+        handleItemDrop(dropTarget.x, dropTarget.y);
+      }
+      
+      itemEl.classList.remove("dragging");
+      currentDraggedItem = null;
+      currentDragType = null;
+      clearAllHighlights();
+      itemEl.releasePointerCapture(e.pointerId);
+    });
+    
+    itemEl.addEventListener("pointercancel", (e) => {
+      isDragging = false;
+      isDraggingActive = false;
+      removeDragPreview();
+      itemEl.classList.remove("dragging");
+      currentDraggedItem = null;
+      currentDragType = null;
+      clearAllHighlights();
+    });
+    
+    // 旧式のdragイベントも残す（互換性のため）
+    itemEl.draggable = true;
     itemEl.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("itemId", item.id);
       currentDraggedItem = item.id;
       currentDragType = "new";
+      isDraggingActive = true;
       itemEl.classList.add("dragging");
     });
     
-    // ドラッグ終了イベント
     itemEl.addEventListener("dragend", (e) => {
       itemEl.classList.remove("dragging");
       currentDraggedItem = null;
       currentDragType = null;
+      isDraggingActive = false;
       clearAllHighlights();
     });
     
