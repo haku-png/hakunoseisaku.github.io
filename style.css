@@ -438,41 +438,48 @@ button {
 }
 
 /* 解説の背景（画面全体を覆う） */
+
 #quiz-explanation {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  /* 背景を透明度50%の黒に（画面全体を覆う） */
   background: rgba(0, 0, 0, 0.5);
-  padding: 20px;
-  /* 基本フォントサイズ固定 */
-  font-size: 24px;
   color: #fff;
   white-space: pre-line;
   text-align: center;
   z-index: 100;
   display: flex;
   flex-direction: column;
-  /* 解説文を上寄せにし、○/×のすぐ下から始まるように上部に余白をとる */
   justify-content: flex-start;
   align-items: center;
-  /* 上部余白 = ○/×の位置 + ○/×の高さ相当 */
   padding-top: 260px;
-  /* 下部余白を増やして「次へ」ボタンのためのスペースを確保（60px=ボタン高さ+margin） */
   padding-bottom: 80px;
   box-sizing: border-box;
   user-select: none;
-  /* 解説文が長い場合にスクロール可能にする */
   overflow-y: auto;
+}
+
+/* スマートフォン表示時、クイズ解説文のフォントサイズ・レイアウトをPCと同じに固定 */
+@media (max-width: 900px) {
+  #quiz-explanation {
+    font-size: 24px !important;
+    line-height: 1.6 !important;
+    max-width: 900px;
+    margin: 0 auto;
+    letter-spacing: normal;
+    word-break: keep-all;
+    white-space: pre-line;
+    text-align: center;
+  }
 }
 
 /* 正誤表示（○/×）- 解説文と背景の間に表示 */
 #quiz-result {
   position: absolute;
   /* 解説エリアの直上に配置 */
-  top: 72px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
   /* 透明度50%の赤 */

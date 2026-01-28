@@ -3,6 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- スマホでのズーム無効化（ピンチ・ダブルタップ等） -->
+  <script>
+    // ピンチズーム・ダブルタップズームを無効化
+    document.addEventListener('touchstart', function (event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+      const now = new Date().getTime();
+      if (now - lastTouchEnd <= 350) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+  </script>
   <title>登山入門ゲーム</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -102,6 +120,7 @@
             <div class="quiz-choice" data-index="1"></div>
             <div class="quiz-choice" data-index="2"></div>
           </div>
+
 
           <div id="quiz-result" class="hidden"></div>
           <div id="quiz-explanation" class="hidden"></div>
