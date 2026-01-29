@@ -461,7 +461,7 @@ button {
   overflow-y: auto;
 }
 
-/* スマートフォン表示時、クイズ解説文のフォントサイズ・レイアウトをPCと同じに固定 */
+/* スマートフォン表示時、クイズ解説文のフォントサイズ・レイアウトをPCと同じに固定
 @media (max-width: 900px) {
   #quiz-explanation {
     font-size: 24px !important;
@@ -473,7 +473,7 @@ button {
     white-space: pre-line;
     text-align: center;
   }
-}
+} */
 
 /* 正誤表示（○/×）- 解説文と背景の間に表示 */
 #quiz-result {
