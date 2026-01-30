@@ -1844,7 +1844,7 @@ const packingItems = [
 
   {
     id: "food",
-    name: "行動食",
+    name: "食料",
     iconImage: "img/items/icons/snack.png",
     blockImage: "img/items/blocks/snack-block.png",
     size: { w: 1, h: 1 },
@@ -3121,12 +3121,19 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
   let nameDisplayTimer = null;
   
   // マウスオーバー時に装備名を表示
+  // itemEl.addEventListener("mouseenter", (e) => {
+  //   // 1秒後に名前を表示
+  //   nameDisplayTimer = setTimeout(() => {
+  //     showItemName(itemEl, item.name, offsetX, offsetY, itemWidth);
+  //   }, 1000);
+  // });
   itemEl.addEventListener("mouseenter", (e) => {
-    // 1秒後に名前を表示
-    nameDisplayTimer = setTimeout(() => {
-      showItemName(itemEl, item.name, offsetX, offsetY, itemWidth);
-    }, 1000);
-  });
+  // 1秒後に名前を表示
+  nameDisplayTimer = setTimeout(() => {
+    const safeName = item.name.replace(/<br>/g, "");
+    showItemName(itemEl, safeName, offsetX, offsetY, itemWidth);
+  }, 1000);
+});
   
   itemEl.addEventListener("mouseleave", (e) => {
     // タイマーをクリア
