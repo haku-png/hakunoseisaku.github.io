@@ -1,3 +1,76 @@
+/* クイズ画面：イラスト＋内容 横並びレイアウト */
+#quiz-main-area {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 60vh;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  padding-top: 60px; /* ボタンと重ならないように上部余白を追加 */
+}
+
+#quiz-illust-area {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  min-height: 240px;
+  background: #fff;
+  border-radius: 16px;
+  margin-right: 32px;
+  /* box-shadow削除：縁取り影なし */
+}
+
+#quiz-content-area {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+#quiz-question-area {
+  margin-bottom: 32px;
+}
+
+#quiz-choices-area {
+  flex-direction: column;
+  align-items: flex-end;
+}
+/* リザルト画面装備アイコン */
+.result-item-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+/* 強制横画面表示（スマホ） */
+@media screen and (orientation: portrait) {
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #screen-root {
+    transform: rotate(90deg);
+    transform-origin: center center;
+    width: 100vh;
+    height: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+  }
+}
 @font-face {
   font-family: 'BestTen';
   src: url('fonts/Best10-FONT/BestTen-DOT.otf') format('opentype');
@@ -18,6 +91,7 @@ html, body {
   /* 最低対応解像度: 667px × 375px */
   min-width: 667px;
   min-height: 375px;
+  overflow-x: hidden; /* 横スクロール禁止で揺れ防止 */
 }
 
 /* パッキング画面でのみ画面固定を適用（スマホでのドラッグ操作時の揺れ防止） */
@@ -426,6 +500,8 @@ button {
 }
 
 .quiz-choice {
+  width: 100%;
+  box-sizing: border-box;
   padding: 12px;
   background: #ddd;
   text-align: center;
@@ -802,6 +878,33 @@ button {
   word-break: keep-all;
   overflow-wrap: break-word;
   line-height: 1.2;
+}
+
+/* 装備アイコンのツールチップ */
+.packing-item-tooltip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  pointer-events: none;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.packing-item-tooltip.hidden {
+  display: none;
+}
+.packing-item {
+  position: relative;
 }
 
 /* 横スクロールバーのスタイル */

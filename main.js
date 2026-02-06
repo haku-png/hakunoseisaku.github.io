@@ -1121,6 +1121,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // クリック: 未選択 → 購入済 → 現地購入 → 未選択 の順で切り替え
       item.onclick = () => {
+        // --- ツールチップ表示用 ---
+        const tooltip = document.createElement("div");
+        tooltip.className = "packing-item-tooltip hidden";
+        tooltip.innerHTML = `サイズ: ${item.size.w}×${item.size.h}<br>重量: ${item.weight}kg`;
+        itemEl.appendChild(tooltip);
+
+        // PC: マウスオーバーで表示
+        itemEl.addEventListener("mouseenter", () => {
+          tooltip.classList.remove("hidden");
+        });
+        itemEl.addEventListener("mouseleave", () => {
+          tooltip.classList.add("hidden");
+        });
+
+        // スマホ: 長押しで表示（touchstart→一定時間後に表示、touchendで非表示）
+        let touchTimer = null;
+        itemEl.addEventListener("touchstart", (e) => {
+          touchTimer = setTimeout(() => {
+            tooltip.classList.remove("hidden");
+          }, 500); // 0.5秒長押しで表示
+        });
+        itemEl.addEventListener("touchend", (e) => {
+          clearTimeout(touchTimer);
+          tooltip.classList.add("hidden");
+        });
+        itemEl.addEventListener("touchcancel", (e) => {
+          clearTimeout(touchTimer);
+          tooltip.classList.add("hidden");
+        });
         // 現在の状態を判定
         const isPurchased = purchasedState[id];
         const isLocalPurchase = localPurchaseState[id];
@@ -1218,7 +1247,13 @@ document.addEventListener("DOMContentLoaded", () => {
 -------------------- */
 
 const quizData = [
+  // 各問題にnumber（1始まり）を付与。画像名等で利用。
+  // 例: { number: 1, question: ..., ... }
+  // ※画面には表示しない
+  //
+  // 1
   {
+    number: 1,
     question: "足のサイズが中厚手の靴下を履いた状態で25.0cmの場合、登山靴は何cm前後で探す？",
     choices: [
       "A: 24.0~24.5",
@@ -1233,6 +1268,7 @@ const quizData = [
 また、この時試し履きした靴下も一緒に購入すると良い。`
   },
   {
+    number: 2,
     question: "登山でのレイヤリングでこだわったほうが良い部分は？",
     choices: [
       "A: 肌着などのベースレイヤー",
@@ -1247,6 +1283,7 @@ const quizData = [
 アウターレイヤーも大事だが、使用頻度や登山全体の快適性への関りがベースレイヤーより低い。`
   },
   {
+    number: 3,
     question: "夏秋の富士山や日本アルプスの山々の登山に挑戦したい。履き口がくるぶしより上にあるものから選ぶとして、ソールはどのくらいの硬さが良い？",
     choices: [
       "A: 片手で曲げられる硬さ",
@@ -1262,6 +1299,7 @@ Cくらいの硬さは雪山や3日以上かかる登山などに使われるこ
 今回の目的には合わずかえって重くて歩きにくい可能性が高い。`
   },
   {
+    number: 4,
     question: "前泊して翌日に富士山に挑戦する、1泊2日の予定の人がザックを選ぶ時に何L辺りが良い？",
     choices: [
       "A: ~25L",
@@ -1277,6 +1315,7 @@ Cくらいの硬さは雪山や3日以上かかる登山などに使われるこ
 疲れやすくなってしまう可能性が高い。`
   },
   {
+    number: 5,
     question: "登山を本格的に始めていくとして、3種の神器で何を一番最初に買えば良い？",
     choices: [
       "A: 登山靴",
@@ -1292,6 +1331,7 @@ Bも天気の変わりやすい山では大切だが、山用の天気予報を�
 `
   },
   {
+    number: 6,
     question: "以下の日ならどの日に登るのが良い？",
     choices: [
       "A: 前日大雨だった晴れの日",
@@ -1306,6 +1346,7 @@ Cは風によって体温が奪われたり、体のバランスが崩れて転�
 登山に慣れてきたらCでも挑戦してみても良いだろう。`
   },
   {
+    number: 7,
     question: "登山を始めてみようかな、という人はまずはどういう山に挑戦してみるのが良い？",
     choices: [
       "A: 標高500mのマイナーな山",
@@ -1322,6 +1363,7 @@ Bは往復3,4時間以上かかる可能性が高いため、始めてみよう�
 ただ、登りたい山があるのなら、難易度にも寄るが、準備をしっかりしてその山に挑戦しても良い。`
   },
   {
+    number: 8,
     question: "いつまでに下山を終えるのが望ましい？",
     choices: [
       "A: 正午まで",
@@ -1336,6 +1378,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
 そのため午前中のうちに登り、午後には下山しているというのが望ましい。`
   },
   {
+    number: 9,
     question: "登山道が分かりづらい場合は何を参考にして進めばいい？",
     choices: [
       "A: 先に行った登山者の歩いた痕跡",
@@ -1350,6 +1393,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
 地図や方角で確認が安全。`
   },
   {
+    number: 10,
     question: "トレッキングポールは取っ手を持って地面についた時に、どのくらいの長さが適切？",
     choices: [
       "A: ついた時に肘が伸びる長さ",
@@ -1363,7 +1407,8 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
 かえって邪魔になる可能性がある。`
   },
   {
-    question: "基本的に日帰り登山の場合、初めての登山靴はどれを選ぶのが良い？",
+    number: 11,
+    question: "基本的に日帰り登山をする場合、初めての登山靴はどれを選ぶのが良い？",
     choices: [
       "A: くるぶしより下の、ローカット",
       "B: くるぶしより上の、ミドルカット",
@@ -1376,6 +1421,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
 最も汎用性の高いのもミドルカットである。`
   },
   {
+    number: 12,
     question: "目的に合わせたレインウェアを選ぶ際にまず重視した方が良いポイントは、「防水性」と何？",
     choices: [
       "A: 来た時の負担が減る軽さ",
@@ -1390,6 +1436,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
 これは登山の目的や山に連動することが多い。`
   },
   {
+    number: 13,
     question: "目の前の大きな段差を登るときに意識するポイントは？",
     choices: [
       "A: 大股で勢いをつけながら登る",
@@ -1402,9 +1449,10 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
 Bは段差を小さくできる点は良いが、足首を痛める危険性があるため、安全性は低い。`
   },
   {
+    number: 14,
     question: "斜面を下るときに意識するポイントは？",
     choices: [
-      "A: 若干内股で歩幅を小さくしながら下る",
+      "A: 内股で歩幅を小さくしながら下る",
       "B: ひざと足先の向きをそろえて背筋を伸ばしながら下る",
       "C: 若干ガニ股で体を左右にねじりながら下る"
     ],
@@ -1414,6 +1462,7 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
     Cは膝へのダメージが大きい。`
   },
   {
+    number: 15,
     question: "標高が100m上がると気温は何℃下がる？",
     choices: [
       "A: 0.6℃",
@@ -1424,6 +1473,7 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
     explanation:`答えはA`
   },
   {
+    number: 16,
     question: "体重60kgの人が標高1000m、コースタイム4時間の山を登山中に何Lの水分を摂取するのが良い？",
     choices: [
       "A: 0.5L",
@@ -1439,11 +1489,12 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
 そこまでの行動時間で計算して持っていく水分を減らして荷物を軽くするのがおすすめ。`
   },
   {
+    number: 17,
     question: "登山道ですれ違う時に、基本的に優先なのは？",
     choices: [
       "A: 上り",
       "B: 下り",
-      "C: 山側にいる人"
+      "C: 疲れている人"
     ],
     correct: 0,
     explanation:
@@ -1452,6 +1503,7 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
 コミュニケーションは意識しておくのが良い。また、止まる時は山側で止まるのが良い。`
   },
   {
+    number: 18,
     question: "熊と遭遇した時の対処はどうすればいい？",
     choices: [
       "A: 大きな音を出しながら距離をとる",
@@ -1465,7 +1517,8 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
 荷物内に食べ物が無ければ置いて距離を取っても可。`
   },
   {
-    question: "登山前に最も確認すべきことは？",
+    number: 19,
+    question: "登山前にまずはじめに確認すべきことは？",
     choices: [
       "A: 前日の登山者の投稿",
       "B: 前日の山の天気",
@@ -1478,6 +1531,7 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
 登山前に確認することとして重要視することである。`
   },
   {
+    number: 20,
     question: "春～秋の肌着(ベースレイヤー)として良いものは？",
     choices: [
       "A: 綿素材のもの",
@@ -1487,7 +1541,8 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
     correct: 2,
     explanation:
 `答えはC。綿素材のものは乾きづらく汗冷えが起きやすい。
-保温性の高いもの、例えばヒートテックなどは逆に体が熱くなりやすく汗が出すぎてしまう。
+保温性の高いものは逆に体が熱くなりやすく汗が出すぎてしまう。
+冬や晩秋などは適している場合はあるが今回は夏も含んでいるため除外する。
 化学繊維のものといえばの代表格は「ポリエステル」や「メリノウール」が挙げられる。`
   },
   // ← 今後ここに問題を追加していくだけで拡張可能
@@ -1515,6 +1570,14 @@ function startQuiz() {
 
 function showQuiz() {
   const quiz = quizOrder[quizIndex];
+
+  // イラスト画像の表示
+  const illustArea = document.getElementById("quiz-illust-area");
+  if (illustArea) {
+    // 画像名は「img/quiz/番号.png」
+    const imgPath = `img/quiz/${quiz.number}.png`;
+    illustArea.innerHTML = `<img src="${imgPath}" alt="クイズイラスト" style="max-width:90%;max-height:320px;object-fit:contain;">`;
+  }
 
   const questionArea = document.getElementById("quiz-question-area");
   const questionEl = document.getElementById("quiz-question");
@@ -1788,18 +1851,18 @@ const packingItems = [
     default: NECESSITY.OPTIONAL,
     // 水分は複数必要となる可能性がある装備
     // 必要数の計算ロジック:
-    // - 基本: 1000m=2, 2000m=4, 3000m=6
+    // - 基本: 1000m=1, 2000m=2, 3000m=4
     // - 山小屋泊: 基本 × 0.5
-    // - テント泊: 基本 + 1
+    // - テント泊: 基本 + 2
     // - 夏: +1
     hasQuantity: true,
     calculateQuantity: (condition) => {
       let needed = 0;
       
       // 標高に応じた基本数
-      if (condition.altitude === 1000) needed = 2;
-      else if (condition.altitude === 2000) needed = 4;
-      else if (condition.altitude === 3000) needed = 6;
+      if (condition.altitude === 1000) needed = 1;
+      else if (condition.altitude === 2000) needed = 2;
+      else if (condition.altitude === 3000) needed = 4;
       
       // 季節による調整
       if (condition.season === "summer") {
@@ -1808,7 +1871,7 @@ const packingItems = [
       
       // テント泊による調整
       if (condition.plan === "tent") {
-        needed += 1; // テント泊は+1
+        needed += 2; // テント泊は+1
       }
       
       // 山小屋泊による調整（最後に適用）
@@ -4076,15 +4139,19 @@ function showEquipmentChecklist() {
   }
   
   packedList.forEach(name => {
-    html += `<li class="packed">✓ ${name}</li>`;
+    const itemData = packingItems.find(i => i.name === name);
+    const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${name}" class="result-item-icon">` : "";
+    html += `<li class="packed">${icon}✓ ${name}</li>`;
   });
   
   // 必要だが未配置の装備（赤文字）
   result.missingRequired.forEach(item => {
+    const itemData = packingItems.find(i => i.id === item.id);
+    const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${item.name}" class="result-item-icon">` : "";
     if (item.shortfall) {
-      html += `<li class="missing">× ${item.name}（あと${item.shortfall}個）</li>`;
+      html += `<li class="missing">${icon}× ${item.name}（あと${item.shortfall}個）</li>`;
     } else {
-      html += `<li class="missing">× ${item.name}</li>`;
+      html += `<li class="missing">${icon}× ${item.name}</li>`;
     }
   });
   
@@ -4157,15 +4224,19 @@ function showResultEquipmentChecklist() {
   }
   
   packedList.forEach(name => {
-    html += `<li class="packed">✓ ${name}</li>`;
+    const itemData = packingItems.find(i => i.name === name);
+    const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${name}" class="result-item-icon">` : "";
+    html += `<li class="packed">${icon}✓ ${name}</li>`;
   });
   
   // 必要だが未配置の装備（赤文字）
   result.missingRequired.forEach(item => {
+    const itemData = packingItems.find(i => i.id === item.id);
+    const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${item.name}" class="result-item-icon">` : "";
     if (item.shortfall) {
-      html += `<li class="missing">× ${item.name}（あと${item.shortfall}個）</li>`;
+      html += `<li class="missing">${icon}× ${item.name}（あと${item.shortfall}個）</li>`;
     } else {
-      html += `<li class="missing">× ${item.name}</li>`;
+      html += `<li class="missing">${icon}× ${item.name}</li>`;
     }
   });
   
@@ -4602,10 +4673,40 @@ function renderPackingItems() {
 
     itemEl.appendChild(img);
     itemEl.appendChild(label);
-    
+
+    // --- ツールチップ表示用 ---
+    const tooltip = document.createElement("div");
+    tooltip.className = "packing-item-tooltip hidden";
+    const totalCells = item.size.w * item.size.h;
+    tooltip.innerHTML = ` ${totalCells}マス<br> ${item.weight}kg`;
+    itemEl.appendChild(tooltip);
+
+    // PC: マウスオーバーで表示
+    itemEl.addEventListener("mouseenter", () => {
+      tooltip.classList.remove("hidden");
+    });
+    itemEl.addEventListener("mouseleave", () => {
+      tooltip.classList.add("hidden");
+    });
+
+    // スマホ: 長押しで表示（touchstart→一定時間後に表示、touchendで非表示）
+    let touchTimer = null;
+    itemEl.addEventListener("touchstart", (e) => {
+      touchTimer = setTimeout(() => {
+        tooltip.classList.remove("hidden");
+      }, 500); // 0.5秒長押しで表示
+    });
+    itemEl.addEventListener("touchend", (e) => {
+      clearTimeout(touchTimer);
+      tooltip.classList.add("hidden");
+    });
+    itemEl.addEventListener("touchcancel", (e) => {
+      clearTimeout(touchTimer);
+      tooltip.classList.add("hidden");
+    });
+
     // Pointer Eventsでドラッグ操作を実装（スマホ対応）
     let isDragging = false;
-    
     itemEl.addEventListener("pointerdown", (e) => {
       isDragging = true;
       isDraggingActive = true;
@@ -4613,22 +4714,15 @@ function renderPackingItems() {
       currentDragType = "new";
       itemEl.classList.add("dragging");
       itemEl.setPointerCapture(e.pointerId);
-      
       // プレビュー要素を作成
       createDragPreview(item, false);
       updateDragPreview(e.clientX, e.clientY);
-      
       console.log("装備一覧: ドラッグ開始", item.name);
       e.preventDefault();
     });
-    
     itemEl.addEventListener("pointermove", (e) => {
       if (!isDragging) return;
-      
-      // プレビュー要素を更新
       updateDragPreview(e.clientX, e.clientY);
-      
-      // グリッドセルのハイライト更新
       const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
       if (dropTarget) {
         highlightPlacementArea(dropTarget.x, dropTarget.y);
@@ -4636,28 +4730,21 @@ function renderPackingItems() {
         clearAllHighlights();
       }
     });
-    
     itemEl.addEventListener("pointerup", (e) => {
       if (!isDragging) return;
       isDragging = false;
       isDraggingActive = false;
-      
-      // プレビュー要素を削除
       removeDragPreview();
-      
-      // ドロップ先の座標を取得（scale変換を考慮）
       const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
       if (dropTarget) {
         handleItemDrop(dropTarget.x, dropTarget.y);
       }
-      
       itemEl.classList.remove("dragging");
       currentDraggedItem = null;
       currentDragType = null;
       clearAllHighlights();
       itemEl.releasePointerCapture(e.pointerId);
     });
-    
     itemEl.addEventListener("pointercancel", (e) => {
       isDragging = false;
       isDraggingActive = false;
@@ -4667,7 +4754,6 @@ function renderPackingItems() {
       currentDragType = null;
       clearAllHighlights();
     });
-    
     // 旧式のdragイベントも残す（互換性のため）
     itemEl.draggable = true;
     itemEl.addEventListener("dragstart", (e) => {
@@ -4677,7 +4763,6 @@ function renderPackingItems() {
       isDraggingActive = true;
       itemEl.classList.add("dragging");
     });
-    
     itemEl.addEventListener("dragend", (e) => {
       itemEl.classList.remove("dragging");
       currentDraggedItem = null;
@@ -4685,7 +4770,6 @@ function renderPackingItems() {
       isDraggingActive = false;
       clearAllHighlights();
     });
-    
     list.appendChild(itemEl);
   });
 
@@ -4877,10 +4961,13 @@ function showPackingResult() {
           <h4>必要な装備（未装備）</h4>
           <ul>
             ${result.missingRequired.map(item => {
+              let itemsArr = window.packingItems || (typeof packingItems !== 'undefined' ? packingItems : []);
+              const itemData = itemsArr.find(i => i.id === item.id);
+              const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${item.name}" class="result-item-icon">` : "";
               if (item.shortfall) {
-                return `<li><span class="item-name">${item.name}</span><span class="item-shortage">あと${item.shortfall}個</span></li>`;
+                return `<li>${icon}<span class="item-name">${item.name}</span><span class="item-shortage">あと${item.shortfall}個</span></li>`;
               }
-              return `<li>${item.name}</li>`;
+              return `<li>${icon}${item.name}</li>`;
             }).join('')}
           </ul>
         </div>
@@ -4891,10 +4978,13 @@ function showPackingResult() {
           <h4>あってもいい装備（未装備）</h4>
           <ul>
             ${result.missingOptional.map(item => {
+              let itemsArr = window.packingItems || (typeof packingItems !== 'undefined' ? packingItems : []);
+              const itemData = itemsArr.find(i => i.id === item.id);
+              const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${item.name}" class="result-item-icon">` : "";
               if (item.shortfall) {
-                return `<li><span class="item-name">${item.name}</span><span class="item-shortage">あと${item.shortfall}個</span></li>`;
+                return `<li>${icon}<span class="item-name">${item.name}</span><span class="item-shortage">あと${item.shortfall}個</span></li>`;
               }
-              return `<li>${item.name}</li>`;
+              return `<li>${icon}${item.name}</li>`;
             }).join('')}
           </ul>
         </div>
@@ -4910,7 +5000,8 @@ function showPackingResult() {
     <div class="result-buttons-container">
       <div class="result-buttons">
         <button id="btn-result-back-menu">メニューに戻る</button>
-        <button id="btn-result-review">装備確認</button>
+        <button id="btn-result-condition">登山条件確認</button>
+        <button id="btn-result-review">装備したもの確認</button>
         <button id="btn-result-weight">重量確認</button>
       </div>
       
@@ -4928,6 +5019,7 @@ function showPackingResult() {
   // DOMが更新された後にイベントリスナーを設定
   requestAnimationFrame(() => {
     const btnResultBackMenu = document.getElementById("btn-result-back-menu");
+    const btnResultCondition = document.getElementById("btn-result-condition");
     const btnResultReview = document.getElementById("btn-result-review");
     const btnResultWeight = document.getElementById("btn-result-weight");
     
@@ -4935,6 +5027,29 @@ function showPackingResult() {
       btnResultBackMenu.addEventListener("click", () => {
         console.log("リザルト画面からメニューに戻る");
         changeScene("menu");
+      });
+    }
+    
+    if (btnResultCondition) {
+      btnResultCondition.addEventListener("click", () => {
+        const checklistEl = document.getElementById("result-equipment-checklist");
+        if (!checklistEl) return;
+        // すでに表示中なら非表示
+        if (!checklistEl.classList.contains("hidden")) {
+          checklistEl.classList.add("hidden");
+          return;
+        }
+        // 登山条件をHTMLで表示
+        let html = '<h3>今回の登山条件</h3><ul>';
+        html += `<li>標高: ${getDisplayLabel(currentCondition.altitude.label)}</li>`;
+        html += `<li>天気: ${getDisplayLabel(currentCondition.weather.label)}</li>`;
+        html += `<li>季節: ${getDisplayLabel(currentCondition.season.label)}</li>`;
+        html += `<li>風: ${getDisplayLabel(String(currentCondition.wind.label))}</li>`;
+        html += `<li>状態: ${getDisplayLabel(currentCondition.state.label)}</li>`;
+        html += `<li>山行: ${getDisplayLabel(currentCondition.plan.label)}</li>`;
+        html += '</ul>';
+        checklistEl.innerHTML = html;
+        checklistEl.classList.remove("hidden");
       });
     }
     
