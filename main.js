@@ -1127,7 +1127,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tooltip.innerHTML = `サイズ: ${item.size.w}×${item.size.h}<br>重量: ${item.weight}kg`;
         itemEl.appendChild(tooltip);
 
-        // PC: マウスオーバーで表示
+        // PC: マウスオーバーで表示（従来通り）
         itemEl.addEventListener("mouseenter", () => {
           tooltip.classList.remove("hidden");
         });
@@ -1135,19 +1135,51 @@ document.addEventListener("DOMContentLoaded", () => {
           tooltip.classList.add("hidden");
         });
 
-        // スマホ: 長押しで表示（touchstart→一定時間後に表示、touchendで非表示）
+        // スマホ: 長押しで画面中央に表示
         let touchTimer = null;
+        let centerTooltip = null;
         itemEl.addEventListener("touchstart", (e) => {
           touchTimer = setTimeout(() => {
-            tooltip.classList.remove("hidden");
+            // 画面幅が狭い場合（スマホ判定）
+            if (window.innerWidth <= 800) {
+              centerTooltip = document.createElement("div");
+              centerTooltip.className = "packing-item-tooltip center-tooltip";
+              centerTooltip.innerHTML = `サイズ: ${item.size.w}×${item.size.h}<br>重量: ${item.weight}kg`;
+              Object.assign(centerTooltip.style, {
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 9999,
+                background: "rgba(0,0,0,0.85)",
+                color: "#fff",
+                padding: "18px 32px",
+                borderRadius: "12px",
+                fontSize: "5vw",
+                textAlign: "center",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+                pointerEvents: "none"
+              });
+              document.body.appendChild(centerTooltip);
+            } else {
+              tooltip.classList.remove("hidden");
+            }
           }, 500); // 0.5秒長押しで表示
         });
         itemEl.addEventListener("touchend", (e) => {
           clearTimeout(touchTimer);
+          if (centerTooltip) {
+            document.body.removeChild(centerTooltip);
+            centerTooltip = null;
+          }
           tooltip.classList.add("hidden");
         });
         itemEl.addEventListener("touchcancel", (e) => {
           clearTimeout(touchTimer);
+          if (centerTooltip) {
+            document.body.removeChild(centerTooltip);
+            centerTooltip = null;
+          }
           tooltip.classList.add("hidden");
         });
         // 現在の状態を判定
@@ -1262,14 +1294,13 @@ const quizData = [
     ],
     correct: 2,
     explanation:
-`答えはC。中敷に足を乗せた時に足先に1cm以上の余裕があることが望ましい。
-つま先を曲げた時に足先が靴本体に当たらないようにするためである。
-前提として履いて歩いた時に足と靴が一体となっているものを探すこと。
-また、この時試し履きした靴下も一緒に購入すると良い。`
+`答えはC。登山靴はつま先に余裕を持たせるのが一般的であり、
+1cm前後の余白が目安とされる。
+曲げた時に足先が靴本体に当たりにくくするためである。`
   },
   {
     number: 2,
-    question: "登山でのレイヤリングでこだわったほうが良い部分は？",
+    question: "登山の服装でこだわったほうが良い部分は？",
     choices: [
       "A: 肌着などのベースレイヤー",
       "B: 行動着や保温着などのミドルレイヤー",
@@ -1278,9 +1309,8 @@ const quizData = [
     correct: 0,
     explanation:
 `おすすめはAのベースレイヤー。
-ベースレイヤーを速乾性のある素材にすることで登山での全体の快適性が上がる。
-肌に接する衣類は速乾性のあるものにするようこだわるのが重要である。
-アウターレイヤーも大事だが、使用頻度や登山全体の快適性への関りがベースレイヤーより低い。`
+全体の組み合わせを考えることが前提ではあるが、
+中でもベースレイヤーは汗をかいた時の快適性に直結する。`
   },
   {
     number: 3,
@@ -1292,15 +1322,13 @@ const quizData = [
     ],
     correct: 1,
     explanation:
-`答えはB。ソールの硬さは上りでのバネ、下りでの足への衝撃の強さに関わる。
-富士山や日本アルプスは長時間歩くことが求められるため、
-長時間歩いても足への負担が少ないBを選ぶのが良い。
-Cくらいの硬さは雪山や3日以上かかる登山などに使われることが多いため、
-今回の目的には合わずかえって重くて歩きにくい可能性が高い。`
+`答えはB。
+長時間歩行では、柔らかすぎず硬すぎないソールが負担を抑えやすい。
+一般登山道向けの標準的な硬さである。`
   },
   {
     number: 4,
-    question: "前泊して翌日に富士山に挑戦する、1泊2日の予定の人がザックを選ぶ時に何L辺りが良い？",
+    question: "前泊して翌日に富士山に挑戦予定の人がザックを選ぶ時に何L辺りが良い？",
     choices: [
       "A: ~25L",
       "B: 30~40L",
@@ -1308,15 +1336,13 @@ Cくらいの硬さは雪山や3日以上かかる登山などに使われるこ
     ],
     correct: 1,
     explanation:
-`おすすめはB。なるべく荷物が入った時に隙間が少ない方がいい。
-ただ、水分や防寒着をはじめ、前泊していくので着替えもあるため、
-25Lまでだと入りきらない可能性が高い。
-45L以上だと逆にザック内の空間が空きすぎて荷物が中で動き重心がぶれて
-疲れやすくなってしまう可能性が高い。`
+`おすすめはB。
+防寒着や着替えなどを含めると1泊2日のザック容量は30~40L程度が丁度いいとされる。
+Aは容量が不足しやすく、Cは大きすぎて荷物が増えがちになる。`
   },
   {
     number: 5,
-    question: "登山を本格的に始めていくとして、3種の神器で何を一番最初に買えば良い？",
+    question: "登山を本格的に始めていくとして、3種の神器で何をはじめに買うのがおすすめ？",
     choices: [
       "A: 登山靴",
       "B: レインウェア",
@@ -1324,15 +1350,14 @@ Cくらいの硬さは雪山や3日以上かかる登山などに使われるこ
     ],
     correct: 0,
     explanation:
-`おすすめはA。滑りにくさや捻挫のしにくさ、足の疲労の溜まりにくさなどに直結しているため、
-登山の難易度が変わってくる。
-Bも天気の変わりやすい山では大切だが、山用の天気予報を見て行けば必須では無いので
-次点で買うと良いものである。
-`
+`おすすめはA。
+レインウェアやザックはレンタルや現地調達も可能であるが、
+登山靴はレンタルでは自分の足に合わない可能性があるため、
+はじめに自前で用意するのに適している。`
   },
   {
     number: 6,
-    question: "以下の日ならどの日に登るのが良い？",
+    question: "降水予報のない以下の日ならどの日に登るのが良い？",
     choices: [
       "A: 前日大雨だった晴れの日",
       "B: 薄い雲が広がっている曇りの日",
@@ -1341,26 +1366,22 @@ Bも天気の変わりやすい山では大切だが、山用の天気予報を�
     correct: 1,
     explanation:
 `おすすめはB。展望は期待できないかもしれないが、安全性は1番高い。
-Aは土砂崩れの危険性やぬかるみの多さによる疲れの溜まりやすさ、川の増水など意外と危険がある。
-Cは風によって体温が奪われたり、体のバランスが崩れて転倒の恐れがあったりする。
-登山に慣れてきたらCでも挑戦してみても良いだろう。`
+Aは地盤が緩んでいる可能性があり、Cは体温低下など危険要素が多い。
+Cは展望は良いが体力消耗も激しくなるため、慣れてきたら挑戦すると良い。`
   },
   {
     number: 7,
     question: "登山を始めてみようかな、という人はまずはどういう山に挑戦してみるのが良い？",
     choices: [
-      "A: 標高500mのマイナーな山",
-      "B: 標高1000m、往復4~6km程度の近隣の山",
-      "C: ロープウェイのある標高2000mの有名な山"
+      "A: 人が少なく、静かなマイナーな山",
+      "B: 登山道が整備されている近隣の山",
+      "C: ロープウェイのある標高が高い有名な山"
     ],
-    correct: 2,
+    correct: 1,
     explanation:
-`おすすめはC。人が多く、頂上までのアクセスが比較的容易なことが多い。
-また体力の問題もロープウェイがあることで不安要素を減らすことができ、
-展望も期待できるので山の良さを感じやすい。Aは道迷いや人も少なく不安要素も多い。
-Bは往復3,4時間以上かかる可能性が高いため、始めてみようかなと考えている段階で登ると
-辛さが前面に出てしまう可能性がある。
-ただ、登りたい山があるのなら、難易度にも寄るが、準備をしっかりしてその山に挑戦しても良い。`
+`おすすめはB。登山道が整備されていることで安全性が高く、
+近隣であればアクセスも良いため、無理なく登山を体験できる。
+ただ、登りたい山があるのなら、準備をしっかりしてその山に挑戦しても良い。`
   },
   {
     number: 8,
@@ -1372,10 +1393,10 @@ Bは往復3,4時間以上かかる可能性が高いため、始めてみよう�
     ],
     correct: 1,
     explanation:
-`正解はB。Aは山行によっては現実的ではない。下山のし始めの基準として設ける。
-Cは日没よりも早く山は暗くなることが多いため、危険である。
-山は比較的午後にゲリラ豪雨や夕立が起こりやすい。
-そのため午前中のうちに登り、午後には下山しているというのが望ましい。`
+`正解はB。Aは山行によっては現実的ではない。
+山は比較的午後に天気が変わりやすいため、下山のし始めの基準として設ける。
+Cは日没よりも早く山は暗くなることが多いため、危険である。`
+
   },
   {
     number: 9,
@@ -1388,9 +1409,8 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
     correct: 1,
     explanation:
 `正解はB。その山の所有者や山岳会の方が付けてくれている道標のようなもの。
-色は様々だが赤が多い。
-ただ、目的が林業などの登山者向けではないテープであることもあるため参考程度にして、
-地図や方角で確認が安全。`
+色は様々だが赤が多い。登山者向けではない場合もあるため、
+参考程度にして、地図や方角で確認が安全。`
   },
   {
     number: 10,
@@ -1402,13 +1422,13 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
     ],
     correct: 1,
     explanation:
-`答えはB。ポールは上りか下りで持つ位置や長さを調整して歩くため、
-自分の体に対して長すぎたり短すぎたりすると腕の振りが大きくなったり補助にならなかったりと、
-かえって邪魔になる可能性がある。`
+`答えはB。
+基本姿勢では肘が直角になる長さが目安とされる。
+長すぎると腕が疲れやすく、短すぎると効果が薄れる。`
   },
   {
     number: 11,
-    question: "基本的に日帰り登山をする場合、初めての登山靴はどれを選ぶのが良い？",
+    question: "基本的に日帰り登山をする人の場合、初めての登山靴はどれを選ぶのが良い？",
     choices: [
       "A: くるぶしより下の、ローカット",
       "B: くるぶしより上の、ミドルカット",
@@ -1417,8 +1437,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
     correct: 1,
     explanation:
 `おすすめはB。Aのローカットでも日帰り登山だったら基本的には問題なく行ける所が多いが、
-足への疲労感、足首の保護などを加味してBのミドルカットがおすすめ。
-最も汎用性の高いのもミドルカットである。`
+足への疲労感、足首の保護などを加味して汎用性の高いBのミドルカットがおすすめ。`
   },
   {
     number: 12,
@@ -1431,9 +1450,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
     correct: 2,
     explanation:
 `答えはC。外がどんなに寒くても登山中は汗をかくため、
-汗冷えを防ぐためにも透湿性は防水性と一緒に見るべきポイント。
-表地の強度が高ければ高いほど重く、嵩張りやすい。
-これは登山の目的や山に連動することが多い。`
+汗冷えを防ぐためにも透湿性は防水性と一緒に見るべきポイント。`
   },
   {
     number: 13,
@@ -1446,7 +1463,7 @@ Cは日没よりも早く山は暗くなることが多いため、危険であ�
     correct: 2,
     explanation:
 `答えはC。Aは使用する筋肉が大きく疲労が溜まりやすい。
-Bは段差を小さくできる点は良いが、足首を痛める危険性があるため、安全性は低い。`
+Bは段差を小さくできる点は良いが、足首を痛める危険性がある。`
   },
   {
     number: 14,
@@ -1474,7 +1491,7 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
   },
   {
     number: 16,
-    question: "体重60kgの人が標高1000m、コースタイム4時間の山を登山中に何Lの水分を摂取するのが良い？",
+    question: "体重60kgの人が標高1000m、往復4時間の山を登山中に何Lの水分を摂取するのが良い？",
     choices: [
       "A: 0.5L",
       "B: 1.0L",
@@ -1484,27 +1501,24 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
     explanation:
 `この場合はBの1.0Lを基準にするのが良い。
 【体重(kg)×5(ml)×行動時間(h)×0.8】で
-必要な水分量がある程度わかるため、それを参考に考えると良い。
-富士山のように道中に山小屋や水分を安定して手に入れられる場所がある場合は、
-そこまでの行動時間で計算して持っていく水分を減らして荷物を軽くするのがおすすめ。`
+これで脱水しないために必要な水分量がある程度わかる。`
   },
   {
     number: 17,
-    question: "登山道ですれ違う時に、基本的に優先なのは？",
+    question: "登山道ですれ違う時の基本的なルールは？",
     choices: [
-      "A: 上り",
-      "B: 下り",
-      "C: 疲れている人"
+      "A: 上り優先",
+      "B: 下り優先",
+      "C: 決まりはない"
     ],
     correct: 0,
     explanation:
-`答えは上り。下りの方が先に動くと落石や転落によって上りの方の危険性が上がる。
-ただ、その登山者の疲労具合や互いのコミュニケーションで優先は変わるため、
-コミュニケーションは意識しておくのが良い。また、止まる時は山側で止まるのが良い。`
+`答えは上り。ただ、その登山者の疲労具合や互いのコミュニケーションで
+譲り合いが起きた場合はそれに準ずる。また、止まる時は山側で止まるのが良い。`
   },
   {
     number: 18,
-    question: "熊と遭遇した時の対処はどうすればいい？",
+    question: "比較的落ち着いている熊と一定の距離で遭遇した時の対処は？",
     choices: [
       "A: 大きな音を出しながら距離をとる",
       "B: 熊を見ながら静かに距離をとる",
@@ -1512,13 +1526,12 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
     ],
     correct: 1,
     explanation:
-`答えはB。大きな音はかえって熊を刺激してしまう可能性がある。
-また、荷物を置くと熊が人間の食べ物の味を覚えてしまうため、それを防ぐ。
-荷物内に食べ物が無ければ置いて距離を取っても可。`
+`Bの行動が基本とされている。
+荷物内に食べ物が無ければ荷物を置いて距離を取っても可。`
   },
   {
     number: 19,
-    question: "登山前にまずはじめに確認すべきことは？",
+    question: "登山日当日にまずはじめに確認すべきことは？",
     choices: [
       "A: 前日の登山者の投稿",
       "B: 前日の山の天気",
@@ -1541,8 +1554,7 @@ Bは段差を小さくできる点は良いが、足首を痛める危険性が�
     correct: 2,
     explanation:
 `答えはC。綿素材のものは乾きづらく汗冷えが起きやすい。
-保温性の高いものは逆に体が熱くなりやすく汗が出すぎてしまう。
-冬や晩秋などは適している場合はあるが今回は夏も含んでいるため除外する。
+保温性の高いものは汗が出すぎて乾くのが追いつかないことが多い。
 化学繊維のものといえばの代表格は「ポリエステル」や「メリノウール」が挙げられる。`
   },
   // ← 今後ここに問題を追加していくだけで拡張可能
@@ -1574,8 +1586,8 @@ function showQuiz() {
   // イラスト画像の表示
   const illustArea = document.getElementById("quiz-illust-area");
   if (illustArea) {
-    // 画像名は「img/quiz/番号.png」
-    const imgPath = `img/quiz/${quiz.number}.png`;
+    // 画像名は「quiz/番号.png」
+    const imgPath = `quiz/${quiz.number}.png`;
     illustArea.innerHTML = `<img src="${imgPath}" alt="クイズイラスト" style="max-width:90%;max-height:320px;object-fit:contain;">`;
   }
 
@@ -1633,9 +1645,11 @@ function judgeAnswer(selected) {
     result.textContent = "○";
     correctCount++;
     AudioManager.playSE('correct'); // 正解音
+    quizOrder[quizIndex].userResult = true;
   } else {
     result.textContent = "×";
     AudioManager.playSE('wrong'); // 不正解音
+    quizOrder[quizIndex].userResult = false;
   }
 
   result.classList.remove("hidden");
@@ -1672,14 +1686,19 @@ function renderQuizFooter() {
   button.style.cursor = "pointer";
   
   button.onclick = () => {
-    quizIndex++;
-
-    if (quizIndex >= quizOrder.length) {
-      showResult();
-    } else {
-      showQuiz();
-    }
-  };
+  // 再挑戦モードの場合はリザルトに戻る
+  if (window.quizRetryMode) {
+    window.quizRetryMode = false;
+    showResult();
+    return;
+  }
+  quizIndex++;
+  if (quizIndex >= quizOrder.length) {
+    showResult();
+  } else {
+    showQuiz();
+  }
+};
   
   explanation.appendChild(button);
 }
@@ -1692,9 +1711,37 @@ function showResult() {
   const rate = Math.round((correctCount / quizOrder.length) * 100);
   const questionArea = document.getElementById("quiz-question-area");
   const questionEl = document.getElementById("quiz-question");
-  
   questionEl.textContent = `正解率 ${rate}%`;
-  
+
+  // イラストを非表示し、問題一覧と正誤結果を表示
+  const illustArea = document.getElementById("quiz-illust-area");
+if (illustArea) {
+  let listHtml = '<div style="text-align:left;max-width:90%;margin:0 auto;">';
+  listHtml += '<h2 style="font-size:4vmin;margin-bottom:16px;">出題された問題の一覧</h2>';
+  listHtml += '<ul style="list-style:none;padding:0;">';
+  const sortedQuizOrder = [...quizOrder].sort((a, b) => a.number - b.number);
+  for (let i = 0; i < sortedQuizOrder.length; i++) {
+    const quiz = sortedQuizOrder[i];
+    const result = quiz.userResult;
+    const resultText = result === true ? '正解' : '不正解';
+    listHtml += `<li class="result-quiz-item" data-number="${quiz.number}" style="margin-bottom:8px;font-size:3vmin;cursor:pointer;color:#333;">問題${quiz.number}：${resultText}</li>`;
+  }
+  listHtml += '</ul>';
+  listHtml += '</div>';
+  illustArea.innerHTML = listHtml;
+
+  // 各問題リストにクリック/タップイベントを付与
+  Array.from(illustArea.querySelectorAll('.result-quiz-item')).forEach(el => {
+    el.addEventListener('click', () => {
+      retryQuizByNumber(Number(el.dataset.number));
+    });
+    el.addEventListener('touchstart', () => {
+      retryQuizByNumber(Number(el.dataset.number));
+    });
+  });
+}
+window.quizRetryMode = false;
+
   // 正解率を画面中央に表示するためのスタイル設定
   questionArea.style.height = "100%";
   questionArea.style.display = "flex";
@@ -1702,14 +1749,26 @@ function showResult() {
   questionArea.style.justifyContent = "center";
   questionEl.style.fontSize = "8vmin";
   questionEl.style.fontWeight = "bold";
-  
+
+  // 再挑戦用フラグ
+  window.quizRetryMode = false;
+
   // 選択肢エリアを非表示にする（削除はしない）
   const choicesArea = document.getElementById("quiz-choices-area");
   choicesArea.style.display = "none";
 
   document.getElementById("quiz-result").classList.add("hidden");
   document.getElementById("quiz-explanation").classList.add("hidden");
-  document.getElementById("footer-area").innerHTML = ``;
+  document.getElementById("footer-area").innerHTML = "";
+}
+
+function retryQuizByNumber(number) {
+  const idx = quizOrder.findIndex(q => q.number === number);
+  if (idx !== -1) {
+    quizIndex = idx;
+    window.quizRetryMode = true;
+    showQuiz();
+  }
 }
 
 /* --------------------
@@ -3454,23 +3513,6 @@ function rotateItem(instanceId) {
       }
       if (!canRotate) break;
     }
-  }
-  
-  // 右回転ができない場合、左回転を試す（-90度、配置位置を調整）
-  if (!canRotate) {
-    console.log("左回転を試みます");
-    
-    // 左回転: 元のアイテムの右下を軸に左に広がる
-    // 例: 幅3高さ1のアイテムが(2,5)にある場合
-    // 右回転すると: (2,5)から幅1高さ3で (2,5)-(2,7) に配置
-    // 左回転すると: 右端(4,5)を基準に下に伸びるので (4,5)-(4,7) になるはず
-    
-    // 正確には: 現在の右上の角を、回転後の右上の角として使う
-    let leftRotateX = x + currentWidth - newWidth;
-    let leftRotateY = y;
-    
-    canRotate = true;
-    
     // 範囲内かチェック
     if (leftRotateX < 0 || leftRotateX + newWidth > packConfig.cols || 
         leftRotateY < 0 || leftRotateY + newHeight > packConfig.rows) {
