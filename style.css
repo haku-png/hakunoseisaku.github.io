@@ -66,9 +66,15 @@
     width: 100vh;
     height: 100vw;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 50%;
+    left: 50%;
     overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 中央配置 */
+    margin-left: -50vw;
+    margin-top: -50vh;
   }
 }
 @font-face {
