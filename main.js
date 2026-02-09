@@ -1,3 +1,16 @@
+// 縦画面警告の表示制御
+function updateOrientationWarning() {
+  const warning = document.getElementById('orientation-warning');
+  if (window.matchMedia('(orientation: portrait)').matches) {
+    warning.classList.remove('hidden');
+  } else {
+    warning.classList.add('hidden');
+  }
+}
+
+window.addEventListener('resize', updateOrientationWarning);
+window.addEventListener('orientationchange', updateOrientationWarning);
+document.addEventListener('DOMContentLoaded', updateOrientationWarning);
 /* --------------------
    オーディオマネージャー
 -------------------- */
