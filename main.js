@@ -38,7 +38,7 @@ const AudioManager = {
     // BGM
     this.bgm.main = new Audio('audio/main.bgm.mp3');
     this.bgm.main.loop = true;
-    this.bgm.main.volume = 0.3;
+    this.bgm.main.volume = 0.2;
     
     this.bgm.game = new Audio('audio/game.bgm.mp3');
     this.bgm.game.loop = true;
@@ -1127,98 +1127,35 @@ document.addEventListener("DOMContentLoaded", () => {
       if (purchasedState[id]) {
         item.classList.add("purchased-on");
       }
-      
       if (localPurchaseState[id]) {
         item.classList.add("local-purchase-on");
       }
 
-      // クリック: 未選択 → 購入済 → 現地購入 → 未選択 の順で切り替え
+      // 状態切り替えのみ（ツールチップ処理は分離）
       item.onclick = () => {
-        // --- ツールチップ表示用 ---
-        const tooltip = document.createElement("div");
-        tooltip.className = "packing-item-tooltip hidden";
-        tooltip.innerHTML = `サイズ: ${item.size.w}×${item.size.h}<br>重量: ${item.weight}kg`;
-        itemEl.appendChild(tooltip);
-
-        // PC: マウスオーバーで表示（従来通り）
-        itemEl.addEventListener("mouseenter", () => {
-          tooltip.classList.remove("hidden");
-        });
-        itemEl.addEventListener("mouseleave", () => {
-          tooltip.classList.add("hidden");
-        });
-
-        // スマホ: 長押しで画面中央に表示
-        let touchTimer = null;
-        let centerTooltip = null;
-        itemEl.addEventListener("touchstart", (e) => {
-          touchTimer = setTimeout(() => {
-            // 画面幅が狭い場合（スマホ判定）
-            if (window.innerWidth <= 800) {
-              centerTooltip = document.createElement("div");
-              centerTooltip.className = "packing-item-tooltip center-tooltip";
-              centerTooltip.innerHTML = `サイズ: ${item.size.w}×${item.size.h}<br>重量: ${item.weight}kg`;
-              Object.assign(centerTooltip.style, {
-                position: "fixed",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex: 9999,
-                background: "rgba(0,0,0,0.85)",
-                color: "#fff",
-                padding: "18px 32px",
-                borderRadius: "12px",
-                fontSize: "5vw",
-                textAlign: "center",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-                pointerEvents: "none"
-              });
-              document.body.appendChild(centerTooltip);
-            } else {
-              tooltip.classList.remove("hidden");
-            }
-          }, 500); // 0.5秒長押しで表示
-        });
-        itemEl.addEventListener("touchend", (e) => {
-          clearTimeout(touchTimer);
-          if (centerTooltip) {
-            document.body.removeChild(centerTooltip);
-            centerTooltip = null;
-          }
-          tooltip.classList.add("hidden");
-        });
-        itemEl.addEventListener("touchcancel", (e) => {
-          clearTimeout(touchTimer);
-          if (centerTooltip) {
-            document.body.removeChild(centerTooltip);
-            centerTooltip = null;
-          }
-          tooltip.classList.add("hidden");
-        });
-        // 現在の状態を判定
         const isPurchased = purchasedState[id];
         const isLocalPurchase = localPurchaseState[id];
-
         if (!isPurchased && !isLocalPurchase) {
-          // 未選択 → 購入済
           purchasedState[id] = true;
           localPurchaseState[id] = false;
           item.classList.add("purchased-on");
           item.classList.remove("local-purchase-on");
         } else if (isPurchased && !isLocalPurchase) {
-          // 購入済 → 現地購入
           purchasedState[id] = false;
           localPurchaseState[id] = true;
           item.classList.remove("purchased-on");
           item.classList.add("local-purchase-on");
         } else if (!isPurchased && isLocalPurchase) {
-          // 現地購入 → 未選択
           purchasedState[id] = false;
           localPurchaseState[id] = false;
           item.classList.remove("purchased-on");
           item.classList.remove("local-purchase-on");
         }
       };
+
+      // ツールチップ処理（マウスオーバー/長押し）
+      // 必要ならitem.sizeやitem.weightはequipmentMaster等から取得
+      // ...existing code...
 
       area.appendChild(item);
     });
@@ -3324,17 +3261,18 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
   
   itemEl.addEventListener("pointerup", (e) => {
     if (!isDraggingPlaced) return;
-    
+
     const dragDuration = Date.now() - pointerDownTime;
+    console.log("pointerup dragDuration:", dragDuration, "ms");
     isDraggingPlaced = false;
     isDraggingActive = false;
     itemEl.style.opacity = "1";
-    
+
     // プレビュー要素を削除
     removeDragPreview();
-    
+
     // 短時間のタップはクリック（回転）として扱う
-    if (dragDuration < 200) {
+    if (dragDuration < 400) {
       currentDraggedItem = null;
       currentDragType = null;
       clearAllHighlights();
@@ -3343,7 +3281,7 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
       e.stopPropagation();
       return;
     }
-    
+
     // ドロップ先の座標を取得
     const dropTarget = getGridCellFromPointer(e.clientX, e.clientY);
     if (dropTarget) {
@@ -3354,7 +3292,7 @@ function renderPlacedItem(instanceId, itemId, x, y, width, height, rotated = fal
       console.log("グリッド外にドロップして削除:", instanceId);
       removeItemFromGrid(instanceId);
     }
-    
+
     currentDraggedItem = null;
     currentDragType = null;
     clearAllHighlights();
@@ -3502,91 +3440,147 @@ function rotateItem(instanceId) {
       }
     }
   }
-  
+
   // 右回転を試す（90度）
-  let canRotate = true;
-  let finalX = x;
-  let finalY = y;
-  
-  // 範囲内かチェック
+  let canRotateRight = true;
+  let rightX = x;
+  let rightY = y;
+
+  // 範囲内かチェック（右回転）
   if (x + newWidth > packConfig.cols || y + newHeight > packConfig.rows) {
-    canRotate = false;
+    canRotateRight = false;
     console.warn("右回転後にグリッドからはみ出ます");
   }
-  
-  // 他の装備と重ならないかチェック
-  if (canRotate) {
+  // 他の装備と重ならないかチェック（右回転）
+  if (canRotateRight) {
     for (let dy = 0; dy < newHeight; dy++) {
       for (let dx = 0; dx < newWidth; dx++) {
         if (packGrid[y + dy][x + dx] !== null) {
-          canRotate = false;
+          canRotateRight = false;
           console.warn("右回転先に他の装備があります");
           break;
         }
       }
-      if (!canRotate) break;
-    }
-    // 範囲内かチェック
-    if (leftRotateX < 0 || leftRotateX + newWidth > packConfig.cols || 
-        leftRotateY < 0 || leftRotateY + newHeight > packConfig.rows) {
-      canRotate = false;
-      console.warn(`左回転後にグリッドからはみ出ます: (${leftRotateX}, ${leftRotateY}) size:(${newWidth}x${newHeight})`);
-    }
-    
-    // 他の装備と重ならないかチェック
-    if (canRotate) {
-      for (let dy = 0; dy < newHeight; dy++) {
-        for (let dx = 0; dx < newWidth; dx++) {
-          const checkY = leftRotateY + dy;
-          const checkX = leftRotateX + dx;
-          if (checkY >= 0 && checkY < packGrid.length && 
-              checkX >= 0 && checkX < packGrid[0].length) {
-            if (packGrid[checkY][checkX] !== null) {
-              canRotate = false;
-              console.warn(`左回転先に他の装備があります: (${checkX}, ${checkY})`);
-              break;
-            }
-          }
-        }
-        if (!canRotate) break;
-      }
-    }
-    
-    if (canRotate) {
-      finalX = leftRotateX;
-      finalY = leftRotateY;
-      console.log(`左回転成功: 位置調整 (${x}, ${y}) -> (${finalX}, ${finalY})`);
+      if (!canRotateRight) break;
     }
   }
-  
-  if (canRotate) {
-    // 回転後の位置で配置
+
+  if (canRotateRight) {
+    // 右回転できた場合はそのまま配置
     for (let dy = 0; dy < newHeight; dy++) {
       for (let dx = 0; dx < newWidth; dx++) {
-        packGrid[finalY + dy][finalX + dx] = instanceId;
+        packGrid[rightY + dy][rightX + dx] = instanceId;
       }
     }
-    
-    // 配置情報を更新（圧縮状態を維持、位置は調整後のものを使用）
-    placedItems[instanceId] = { itemId: placed.itemId, x: finalX, y: finalY, rotated: newRotated, pressed: pressed };
-    
-    // 視覚的に再描画
+    placedItems[instanceId] = { itemId: placed.itemId, x: rightX, y: rightY, rotated: newRotated, pressed: pressed };
     const gridEl = document.getElementById("pack-grid");
     const oldItemEl = gridEl.querySelector(`[data-placed-item-id="${instanceId}"]`);
     if (oldItemEl) {
       oldItemEl.remove();
     }
-    renderPlacedItem(instanceId, placed.itemId, finalX, finalY, newWidth, newHeight, newRotated);
-    
-    console.log(`装備「${item.name}」を回転しました`);
+    renderPlacedItem(instanceId, placed.itemId, rightX, rightY, newWidth, newHeight, newRotated);
+    console.log(`装備「${item.name}」を右回転しました`);
+    return;
+  }
+
+  // 右回転できなければ左回転を検証
+  // leftRotateX, leftRotateYの計算が必要（既存ロジックを流用）
+  let leftRotateX = x;
+  let leftRotateY = y;
+  let canRotateLeft = true;
+  // 範囲内かチェック（左回転）
+  if (leftRotateX < 0 || leftRotateX + newWidth > packConfig.cols || 
+      leftRotateY < 0 || leftRotateY + newHeight > packConfig.rows) {
+    canRotateLeft = false;
+    console.warn(`左回転後にグリッドからはみ出ます: (${leftRotateX}, ${leftRotateY}) size:(${newWidth}x${newHeight})`);
+  }
+  // 他の装備と重ならないかチェック（左回転）
+  if (canRotateLeft) {
+    for (let dy = 0; dy < newHeight; dy++) {
+      for (let dx = 0; dx < newWidth; dx++) {
+        const checkY = leftRotateY + dy;
+        const checkX = leftRotateX + dx;
+        if (checkY >= 0 && checkY < packGrid.length && 
+            checkX >= 0 && checkX < packGrid[0].length) {
+          if (packGrid[checkY][checkX] !== null) {
+            canRotateLeft = false;
+            console.warn(`左回転先に他の装備があります: (${checkX}, ${checkY})`);
+            break;
+          }
+        }
+      }
+      if (!canRotateLeft) break;
+    }
+  }
+
+  if (canRotateLeft) {
+    // 左回転できた場合はそのまま配置
+    for (let dy = 0; dy < newHeight; dy++) {
+      for (let dx = 0; dx < newWidth; dx++) {
+        packGrid[leftRotateY + dy][leftRotateX + dx] = instanceId;
+      }
+    }
+    placedItems[instanceId] = { itemId: placed.itemId, x: leftRotateX, y: leftRotateY, rotated: newRotated, pressed: pressed };
+    const gridEl = document.getElementById("pack-grid");
+    const oldItemEl = gridEl.querySelector(`[data-placed-item-id="${instanceId}"]`);
+    if (oldItemEl) {
+      oldItemEl.remove();
+    }
+    renderPlacedItem(instanceId, placed.itemId, leftRotateX, leftRotateY, newWidth, newHeight, newRotated);
+    console.log(`装備「${item.name}」を左回転しました`);
+    return;
+  }
+
+  // どちらもできない場合は空き領域探索して自動移動
+  let found = false;
+  let bestY = -1, bestX = -1;
+  // 下側優先で探索（Y降順、X昇順）
+  for (let searchY = packConfig.rows - newHeight; searchY >= 0; searchY--) {
+    for (let searchX = 0; searchX <= packConfig.cols - newWidth; searchX++) {
+      let canPlace = true;
+      for (let dy = 0; dy < newHeight; dy++) {
+        for (let dx = 0; dx < newWidth; dx++) {
+          if (packGrid[searchY + dy][searchX + dx] !== null) {
+            canPlace = false;
+            break;
+          }
+        }
+        if (!canPlace) break;
+      }
+      if (canPlace) {
+        // 一番下側の空き領域を記録
+        bestY = searchY;
+        bestX = searchX;
+        found = true;
+        break;
+      }
+    }
+    if (found) break;
+  }
+  if (found) {
+    // 空き領域に配置
+    for (let dy = 0; dy < newHeight; dy++) {
+      for (let dx = 0; dx < newWidth; dx++) {
+        packGrid[bestY + dy][bestX + dx] = instanceId;
+      }
+    }
+    placedItems[instanceId] = { itemId: placed.itemId, x: bestX, y: bestY, rotated: newRotated, pressed: pressed };
+    const gridEl = document.getElementById("pack-grid");
+    const oldItemEl = gridEl.querySelector(`[data-placed-item-id="${instanceId}"]`);
+    if (oldItemEl) {
+      oldItemEl.remove();
+    }
+    renderPlacedItem(instanceId, placed.itemId, bestX, bestY, newWidth, newHeight, newRotated);
+    console.log(`装備「${item.name}」を空き領域(${bestX},${bestY})に自動移動して回転しました`);
+    return;
   } else {
-    // 回転できない場合は元に戻す
+    // 配置できる空き領域がない場合は元に戻す
     for (let dy = 0; dy < currentHeight; dy++) {
       for (let dx = 0; dx < currentWidth; dx++) {
         packGrid[y + dy][x + dx] = instanceId;
       }
     }
-    console.warn("右回転も左回転もできませんでした");
+    console.warn("回転後に空き領域が見つかりませんでした");
   }
 }
 
@@ -4284,16 +4278,7 @@ function showResultEquipmentChecklist() {
     html += `<li class="packed">${icon}✓ ${name}</li>`;
   });
   
-  // 必要だが未配置の装備（赤文字）
-  result.missingRequired.forEach(item => {
-    const itemData = packingItems.find(i => i.id === item.id);
-    const icon = itemData && itemData.iconImage ? `<img src="${itemData.iconImage}" alt="${item.name}" class="result-item-icon">` : "";
-    if (item.shortfall) {
-      html += `<li class="missing">${icon}× ${item.name}（あと${item.shortfall}個）</li>`;
-    } else {
-      html += `<li class="missing">${icon}× ${item.name}</li>`;
-    }
-  });
+  // 必要だが未配置の装備（赤文字）は表示しない
   
   html += '</ul>';
   

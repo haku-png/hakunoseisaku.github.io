@@ -600,6 +600,7 @@ button {
   font-weight: bold;
   z-index: 101;
   pointer-events: none;
+  text-align: center;
 }
 
 /* クイズ画面のメニューに戻るボタン */
